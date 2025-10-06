@@ -37,10 +37,10 @@ const defaultArticles = [
             
             <p><strong>結論：</strong>蘇媽的算盤是「捨小餅，做大餅」，用10%的股權作為誘餌，撬動一個接近兆美元的市值帝國，讓所有股東（包括她自己）的身價暴漲。</p>
             
-            <h3>OpenAI的算盤：用「採購承諾」換取「近乎無本的千億美元橫財」</h3>
+            <h3>OpenAI的算盤：用「採購承諾」換取「幾乎無本的千億億美元橫財」</h3>
             <ul>
                 <li>Open AI的付出：承諾在未來幾年向AMD採購數十億美元的晶片。(這些晶片本來就是OPEN AI要花錢買的。)</li>
-                <li>OpenAI的財務收益：<strong>近乎無本的</strong>取得 972億美元</li>
+                <li>OpenAI的財務收益：<strong>幾乎無本的</strong>取得 972億美元</li>
             </ul>
             
             <h2>我看到的不只是新聞，是「兌換券」</h2>
@@ -169,7 +169,7 @@ const translations = {
     }
 };
 
-// DOM元素
+// DOM 元素引用
 const loadingState = document.getElementById('loadingState');
 const articleContent = document.getElementById('articleContent');
 const errorState = document.getElementById('errorState');
@@ -183,6 +183,10 @@ const bilingualContentZh = document.getElementById('bilingualContentZh');
 const bilingualContentEn = document.getElementById('bilingualContentEn');
 const singleLanguageContent = document.getElementById('singleLanguageContent');
 const bilingualContent = document.getElementById('bilingualContent');
+const prevArticleBtn = document.getElementById('prevArticleBtn');
+const nextArticleBtn = document.getElementById('nextArticleBtn');
+const prevArticleTitle = document.getElementById('prevArticleTitle');
+const nextArticleTitle = document.getElementById('nextArticleTitle');
 
 /**
  * 初始化文章頁面
@@ -241,8 +245,14 @@ function loadArticle(articleId) {
         return;
     }
     
+    // 暫時禁用URL更新，避免導航問題
+    // updateBrowserUrl(article, currentLanguage);
+    
     currentArticle = article;
     displayArticle(article);
+    
+    // 設置文章導航
+    setupArticleNavigation(articleId);
 }
 
 /**
@@ -669,45 +679,119 @@ function fallbackShare() {
  */
 function showError() {
     loadingState.classList.add('hidden');
-    articleContent.classList.add('hidden');
     errorState.classList.remove('hidden');
 }
 
 /**
- * 顯示通知訊息
+ * 獲取所有文章列表
  */
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
+function getAllArticles() {
+    try {
+        const storedArticles = localStorage.getItem('articles');
+        return storedArticles ? JSON.parse(storedArticles) : defaultArticles;
+    } catch (error) {
+        console.error('Error loading articles:', error);
+        return defaultArticles;
+    }
+}
+
+/**
+ * 根據當前文章ID獲取前後文章
+ */
+function getAdjacentArticles(currentId) {
+    const articles = getAllArticles();
+    const currentIndex = articles.findIndex(article => article.id === parseInt(currentId));
     
-    const bgColor = type === 'error' ? '#e74c3c' : '#27ae60';
+    if (currentIndex === -1) {
+        return { prev: null, next: null };
+    }
     
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${bgColor};
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 8px;
-        z-index: 3000;
-        animation: slideInRight 0.3s ease;
-        max-width: 300px;
-        word-wrap: break-word;
-    `;
+    const prevArticle = currentIndex > 0 ? articles[currentIndex - 1] : null;
+    const nextArticle = currentIndex < articles.length - 1 ? articles[currentIndex + 1] : null;
     
-    document.body.appendChild(notification);
+    return { prev: prevArticle, next: nextArticle };
+}
+
+/**
+ * 設置文章導航按鈕
+ */
+function setupArticleNavigation(currentId) {
+    const { prev, next } = getAdjacentArticles(currentId);
     
-    // 3秒後移除通知
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (document.body.contains(notification)) {
-                document.body.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
+    // 設置上一篇文章按鈕
+    if (prev) {
+        const prevUrl = `article.html?id=${prev.id}&lang=${currentLanguage}`;
+        prevArticleBtn.href = prevUrl;
+        prevArticleTitle.textContent = prev.title;
+        prevArticleBtn.classList.remove('hidden');
+    } else {
+        prevArticleBtn.classList.add('hidden');
+    }
+    
+    // 設置下一篇文章按鈕
+    if (next) {
+        const nextUrl = `article.html?id=${next.id}&lang=${currentLanguage}`;
+        nextArticleBtn.href = nextUrl;
+        nextArticleTitle.textContent = next.title;
+        nextArticleBtn.classList.remove('hidden');
+    } else {
+        nextArticleBtn.classList.add('hidden');
+    }
+}
+
+/**
+ * 更新語言按鈕狀態
+ */
+function updateLanguageButtons() {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-lang') === currentLanguage) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+/**
+ * 顯示載入狀態
+ */
+function showLoading() {
+    if (loadingState) {
+        loadingState.classList.remove('hidden');
+    }
+    if (articleContent) {
+        articleContent.classList.add('hidden');
+    }
+    if (errorState) {
+        errorState.classList.add('hidden');
+    }
+}
+
+/**
+ * 隱藏載入狀態
+ */
+function hideLoading() {
+    if (loadingState) {
+        loadingState.classList.add('hidden');
+    }
+}
+
+/**
+ * 顯示錯誤狀態
+ */
+function showError(message = '文章載入失敗') {
+    if (loadingState) {
+        loadingState.classList.add('hidden');
+    }
+    if (articleContent) {
+        articleContent.classList.add('hidden');
+    }
+    if (errorState) {
+        errorState.classList.remove('hidden');
+        const errorMessage = errorState.querySelector('.error-message');
+        if (errorMessage) {
+            errorMessage.textContent = message;
+        }
+    }
 }
 
 /**
@@ -838,3 +922,140 @@ function addSyncScroll() {
 
 // 當DOM載入完成時初始化文章頁面
 document.addEventListener('DOMContentLoaded', initArticlePage);
+
+/**
+ * 生成SEO友好的URL slug
+ * @param {string} title - 文章標題
+ * @returns {string} - URL slug
+ */
+function generateUrlSlug(title) {
+    return title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // 移除特殊字符
+        .replace(/[\s_-]+/g, '-') // 將空格和下劃線轉換為連字號
+        .replace(/^-+|-+$/g, ''); // 移除開頭和結尾的連字號
+}
+
+/**
+ * 獲取分類的英文名稱
+ * @param {string} category - 分類名稱
+ * @returns {string} - 英文分類名稱
+ */
+function getCategorySlug(category) {
+    const categoryMap = {
+        'investment': 'investment',
+        'ai': 'ai',
+        'tech': 'tech',
+        'news': 'news'
+    };
+    return categoryMap[category] || category;
+}
+
+/**
+ * 生成新格式的文章URL
+ * @param {Object} article - 文章對象
+ * @param {string} language - 語言代碼 (zh, en, cn, jp等)
+ * @returns {string} - 新格式的URL
+ */
+function generateArticleUrl(article, language = 'zh') {
+    const categorySlug = getCategorySlug(article.category);
+    const titleSlug = generateUrlSlug(article.title);
+    return `/${categorySlug}/${titleSlug}-${article.id}-${language}`;
+}
+
+/**
+ * 解析新格式的文章URL
+ * @param {string} url - URL字符串
+ * @returns {Object|null} - 解析結果 {articleId, language, category, titleSlug}
+ */
+function parseArticleUrl(url) {
+    // 移除域名和協議，只保留路徑
+    const path = url.replace(/^https?:\/\/[^\/]+/, '');
+    
+    // 新格式: /[category]/[title-slug]-[id]-[language]
+    const newFormatMatch = path.match(/^\/([^\/]+)\/(.+)-(\d+)-([a-z]{2,3})$/);
+    
+    if (newFormatMatch) {
+        const [, category, titleSlug, articleId, language] = newFormatMatch;
+        return {
+            articleId: parseInt(articleId),
+            language: language,
+            category: category,
+            titleSlug: titleSlug
+        };
+    }
+    
+    return null;
+}
+
+/**
+ * 從URL中提取文章ID（支援新舊格式）
+ * @returns {number|null} - 文章ID
+ */
+function parseArticleId() {
+    const currentUrl = window.location.href;
+    const currentPath = window.location.pathname;
+    
+    // 首先嘗試解析新格式URL
+    const newFormatResult = parseArticleUrl(currentUrl);
+    if (newFormatResult) {
+        return newFormatResult.articleId;
+    }
+    
+    // 如果新格式解析失敗，嘗試舊格式（查詢參數）
+    const urlParams = new URLSearchParams(window.location.search);
+    const idFromQuery = urlParams.get('id');
+    
+    if (idFromQuery) {
+        return parseInt(idFromQuery);
+    }
+    
+    return null;
+}
+
+/**
+ * 從URL中提取語言代碼
+ * @returns {string} - 語言代碼，默認為'zh'
+ */
+function parseLanguageFromUrl() {
+    const currentUrl = window.location.href;
+    
+    // 嘗試從新格式URL中提取語言
+    const newFormatResult = parseArticleUrl(currentUrl);
+    if (newFormatResult && newFormatResult.language) {
+        return newFormatResult.language;
+    }
+    
+    // 如果新格式解析失敗，檢查查詢參數
+    const urlParams = new URLSearchParams(window.location.search);
+    const langFromQuery = urlParams.get('lang');
+    
+    if (langFromQuery) {
+        return langFromQuery;
+    }
+    
+    // 默認返回中文
+    return 'zh';
+}
+
+/**
+ * 更新瀏覽器URL（不刷新頁面）
+ * @param {Object} article - 文章對象
+ * @param {string} language - 語言代碼
+ */
+function updateBrowserUrl(article, language) {
+    if (!article) return;
+    
+    const newUrl = generateArticleUrl(article, language);
+    const fullUrl = window.location.origin + newUrl;
+    
+    // 更新瀏覽器URL但不刷新頁面
+    window.history.replaceState(
+        { articleId: article.id, language: language },
+        `${article.title} - Jason Blog`,
+        fullUrl
+    );
+    
+    // 更新頁面標題
+    document.title = `${article.title} - Jason Blog`;
+}

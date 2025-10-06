@@ -37,10 +37,10 @@ let articles = JSON.parse(localStorage.getItem('blogArticles')) || [
             
             <p><strong>結論：</strong>蘇媽的算盤是「捨小餅，做大餅」，用10%的股權作為誘餌，撬動一個接近兆美元的市值帝國，讓所有股東（包括她自己）的身價暴漲。</p>
             
-            <h3>OpenAI的算盤：用「採購承諾」換取「近乎無本的千億美元橫財」</h3>
+            <h3>OpenAI的算盤：用「採購承諾」換取「幾乎無本的千億美元橫財」</h3>
             <ul>
                 <li>Open AI的付出：承諾在未來幾年向AMD採購數十億美元的晶片。(這些晶片本來就是OPEN AI要花錢買的。)</li>
-                <li>OpenAI的財務收益：<strong>近乎無本的</strong>取得 972億美元</li>
+                <li>OpenAI的財務收益：<strong>幾乎無本的</strong>取得 972億美元</li>
             </ul>
             
             <h2>我看到的不只是新聞，是「兌換券」</h2>
@@ -129,7 +129,7 @@ let commentsData = {
 // DOM元素
 const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
-const navLinks = document.querySelectorAll('.nav-link');
+const navLinks = document.querySelectorAll('.nav-menu a');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const articlesGrid = document.getElementById('articlesGrid');
@@ -225,9 +225,28 @@ function initApp() {
     loadArticles();
     setupEventListeners();
     initializeLanguagePreference(); // 初始化語言偏好
+    initializeCategoryFromURL(); // 從 URL 初始化分類狀態
     renderArticles();
     renderCategories();
     updateLanguage();
+}
+
+/**
+ * 從 URL 參數初始化分類狀態
+ */
+function initializeCategoryFromURL() {
+    const urlCategory = getCategoryFromURL();
+    
+    // 更新當前篩選狀態
+    currentFilter = urlCategory;
+    
+    // 更新按鈕的活動狀態
+    filterBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-filter') === urlCategory) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 /**
@@ -240,15 +259,49 @@ function setupEventListeners() {
     });
     
     // 搜尋功能
-    const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', handleSearch);
     }
     
     // 分類篩選
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    filterButtons.forEach(btn => {
+    filterBtns.forEach(btn => {
         btn.addEventListener('click', handleFilter);
+    });
+    
+    // 漢堡選單
+    if (hamburger) {
+        hamburger.addEventListener('click', toggleMobileMenu);
+    }
+    
+    // 導航連結
+    navLinks.forEach(link => {
+        link.addEventListener('click', handleNavClick);
+    });
+    
+    // 模態框關閉
+    if (closeModal) {
+        closeModal.addEventListener('click', closeArticleModal);
+    }
+    
+    // 點擊模態框背景關閉
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeArticleModal();
+            }
+        });
+    }
+    
+    // 評論提交
+    if (submitComment) {
+        submitComment.addEventListener('click', handleCommentSubmit);
+    }
+    
+    // 按 ESC 鍵關閉模態框
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.style.display === 'block') {
+            closeArticleModal();
+        }
     });
 }
 
@@ -337,17 +390,60 @@ function handleSearch() {
  * 處理分類篩選
  */
 function handleFilter(e) {
-    // 移除所有active類別
-    filterBtns.forEach(btn => btn.classList.remove('active'));
+    const button = e.target;
+    const newFilter = button.getAttribute('data-filter');
     
-    // 添加active類別到當前按鈕
-    e.target.classList.add('active');
+    // 如果點擊的是當前已選中的分類，則不執行任何操作
+    if (currentFilter === newFilter) return;
     
-    // 更新篩選狀態
-    currentFilter = e.target.getAttribute('data-category');
+    // 添加載入狀態
+    button.disabled = true;
+    button.style.opacity = '0.7';
     
-    // 重新渲染文章
-    renderArticles();
+    // 獲取文章網格容器
+    const articlesGrid = document.getElementById('articlesGrid');
+    
+    // 添加淡出效果
+    if (articlesGrid) {
+        articlesGrid.style.opacity = '0.5';
+        articlesGrid.style.transition = 'opacity 0.3s ease';
+    }
+    
+    // 使用 setTimeout 創建平滑的切換體驗
+    setTimeout(() => {
+        // 移除所有active類別
+        filterBtns.forEach(btn => btn.classList.remove('active'));
+        
+        // 添加active類別到當前按鈕
+        button.classList.add('active');
+        
+        // 更新篩選狀態
+        currentFilter = newFilter;
+        
+        // 更新 URL 參數
+        updateURLParameter('category', currentFilter);
+        
+        // 重新渲染文章
+        renderArticles();
+        
+        // 恢復按鈕狀態
+        button.disabled = false;
+        button.style.opacity = '1';
+        
+        // 恢復文章網格透明度
+        if (articlesGrid) {
+            articlesGrid.style.opacity = '1';
+        }
+        
+        // 滾動到文章區塊以提供更好的用戶體驗
+        document.getElementById('articles').scrollIntoView({
+            behavior: 'smooth'
+        });
+        
+        // 顯示切換成功的視覺反饋
+        showFilterSwitchFeedback(newFilter);
+        
+    }, 150);
 }
 
 /**
@@ -393,40 +489,77 @@ function renderArticles() {
 }
 
 /**
+ * 生成SEO友好的URL slug
+ * @param {string} title - 文章標題
+ * @returns {string} - URL slug
+ */
+function generateUrlSlug(title) {
+    return title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // 移除特殊字符
+        .replace(/[\s_-]+/g, '-') // 將空格和下劃線轉換為連字號
+        .replace(/^-+|-+$/g, ''); // 移除開頭和結尾的連字號
+}
+
+/**
+ * 獲取分類的英文名稱
+ * @param {string} category - 分類名稱
+ * @returns {string} - 英文分類名稱
+ */
+function getCategorySlug(category) {
+    const categoryMap = {
+        'investment': 'investment',
+        'ai': 'ai',
+        'tech': 'tech',
+        'news': 'news'
+    };
+    return categoryMap[category] || category;
+}
+
+/**
+ * 生成新格式的文章URL
+ * @param {Object} article - 文章對象
+ * @param {string} language - 語言代碼 (zh, en, cn, jp等)
+ * @returns {string} - 新格式的URL
+ */
+function generateArticleUrl(article, language = 'zh') {
+    const categorySlug = getCategorySlug(article.category);
+    const titleSlug = generateUrlSlug(article.title);
+    return `/${categorySlug}/${titleSlug}-${article.id}-${language}`;
+}
+
+/**
  * 創建文章卡片
  */
 function createArticleCard(article) {
     const card = document.createElement('div');
     card.className = 'article-card';
-    card.setAttribute('data-article-id', article.id);
     
-    const categoryNames = {
-        'investment': getCategoryName('investment'),
-        'tech': getCategoryName('tech'),
-        'ai': getCategoryName('ai'),
-        'news': getCategoryName('news')
-    };
+    // 使用舊格式URL確保連結正常工作，文章頁面載入後會更新為新格式
+    const articleUrl = `article.html?id=${article.id}&lang=${currentLanguage}`;
     
     card.innerHTML = `
-        <div class="article-image">
-            <img src="https://via.placeholder.com/300x200?text=Article+${article.id}" alt="${article.title}">
+        <div class="article-meta">
+            <span class="article-category ${article.category}">${getCategoryName(article.category)}</span>
+            <time class="article-date">${formatDate(article.date)}</time>
         </div>
-        <div class="article-content">
-            <div class="article-category ${article.category}">${getCategoryName(article.category)}</div>
-            <h3>${article.title}</h3>
-            <p class="article-excerpt">${article.excerpt}</p>
-            <div class="article-meta">
-                <span class="article-date">${formatDate(article.date)}</span>
-                <div class="article-tags">
-                    ${article.tags ? article.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : ''}
-                </div>
-            </div>
-            <button class="read-more-btn">${translations[currentLanguage]['Read More']}</button>
+        <h2 class="article-title">
+            <a href="${articleUrl}" class="article-link">${article.title}</a>
+        </h2>
+        <p class="article-excerpt">${article.excerpt}</p>
+        <div class="article-tags">
+            ${article.tags ? article.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : ''}
+        </div>
+        <div class="article-actions">
+            <a href="${articleUrl}" class="read-more-btn" data-zh="閱讀全文" data-en="Read More">
+                ${currentLanguage === 'zh' ? '閱讀全文' : 'Read More'}
+            </a>
+            <button class="share-btn" onclick="shareArticle(${article.id})" data-zh="分享" data-en="Share">
+                <i class="fas fa-share-alt"></i>
+                ${currentLanguage === 'zh' ? '分享' : 'Share'}
+            </button>
         </div>
     `;
-    
-    // 添加點擊事件
-    card.addEventListener('click', () => openArticle(article.id));
     
     return card;
 }
@@ -456,7 +589,10 @@ function formatDate(dateString) {
  * 打開文章詳情
  */
 function openArticle(articleId) {
-    // 跳轉到獨立的文章頁面
+    const article = articles.find(a => a.id === parseInt(articleId));
+    if (!article) return;
+    
+    // 導航到獨立的文章頁面
     window.location.href = `article.html?id=${articleId}`;
 }
 
@@ -559,6 +695,65 @@ function showLanguageSwitchFeedback(targetLang) {
             }
         }, 300);
     }, 3000);
+}
+
+/**
+ * 顯示分類切換成功的通知
+ */
+function showFilterSwitchFeedback(filter) {
+    const filterNames = {
+        'all': '全部',
+        'investment': '投資分析',
+        'tech': '科技股',
+        'ai': 'AI產業',
+        'news': '財經新聞'
+    };
+    
+    const filterName = filterNames[filter] || filter;
+    const notification = document.createElement('div');
+    notification.textContent = `已切換至「${filterName}」分類`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--secondary-color);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: var(--border-radius);
+        z-index: 3000;
+        animation: slideInRight 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // 2秒後移除通知
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 2000);
+}
+
+/**
+ * 更新 URL 參數
+ */
+function updateURLParameter(param, value) {
+    const url = new URL(window.location);
+    if (value === 'all') {
+        url.searchParams.delete(param);
+    } else {
+        url.searchParams.set(param, value);
+    }
+    window.history.replaceState({}, '', url);
+}
+
+/**
+ * 從 URL 參數獲取分類
+ */
+function getCategoryFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('category') || 'all';
 }
 
 /**

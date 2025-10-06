@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章路由處理</title>
+    <script>
+        // 客戶端路由處理
+        function handleRoute() {
+            const path = window.location.pathname;
+            
+            // 新格式URL匹配: /[category]/[title-slug]-[id]-[language]
+            const articlePattern = /^\/([^\/]+)\/(.+)-(\d+)-([a-z]{2,3})\/?$/;
+            const match = path.match(articlePattern);
+            
+            if (match) {
+                const [, category, titleSlug, articleId, language] = match;
+                
+                // 重定向到article.html並保持新URL
+                const newUrl = `article.html?id=${articleId}&lang=${language}`;
+                
+                // 使用history API保持URL不變
+                history.replaceState(null, '', path);
+                
+                // 載入文章頁面內容
+                window.location.href = newUrl;
+            } else {
+                // 如果不匹配，重定向到首頁
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // 頁面載入時執行路由處理
+        window.addEventListener('load', handleRoute);
+    </script>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px;">
+        <h2>正在載入文章...</h2>
+        <p>請稍候，系統正在處理您的請求。</p>
+    </div>
+</body>
+</html>

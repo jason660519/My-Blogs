@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# 處理新格式的文章URL: /[category]/[title-slug]-[id]-[language]
+RewriteRule ^([^/]+)/(.+)-([0-9]+)-([a-z]{2,3})/?$ article.html?id=$3&lang=$4 [L,QSA]
+
+# 處理舊格式的文章URL（向後兼容）
+RewriteRule ^article\.html$ article.html [L]
+
+# 處理根目錄
+RewriteRule ^$ index.html [L]
