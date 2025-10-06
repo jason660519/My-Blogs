@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jason Blog - 管理後台</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .admin-container {
+            max-width: 1000px;
+            margin: 100px auto 50px;
+            padding: 0 20px;
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .admin-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-light);
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+        }
+        
+        .tab-btn.active {
+            color: var(--secondary-color);
+            border-bottom-color: var(--secondary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .form-group textarea {
+            min-height: 300px;
+            resize: vertical;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .btn-primary {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-secondary {
+            background: var(--text-light);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #6c757d;
+        }
+        
+        .articles-list {
+            background: var(--bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .article-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .article-item:last-child {
+            border-bottom: none;
+        }
+        
+        .article-info h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .article-meta {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .article-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-edit {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #e67e22;
+        }
+        
+        .btn-delete {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+        
+        .preview-section {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: var(--bg-light);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+        
+        .preview-section h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .back-to-site {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        /* 雙語表單樣式 */
+        .language-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .language-section h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
+        }
+
+        .language-section h3 i {
+            margin-right: 8px;
+            color: #007bff;
+        }
+
+        .shared-fields {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .shared-fields h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #ffc107;
+            padding-bottom: 8px;
+        }
+
+        .shared-fields h3 i {
+            margin-right: 8px;
+            color: #ffc107;
+        }
+
+        /* 語言切換按鈕樣式 */
+        .admin-lang-switcher {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .admin-lang-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .admin-lang-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .admin-lang-btn.active {
+            background: #007bff;
+            box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                margin-top: 80px;
+                padding: 0 15px;
+            }
+            
+            .admin-tabs {
+                flex-direction: column;
+            }
+            
+            .article-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 返回網站按鈕 -->
+    <a href="index.html" class="back-to-site btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> 返回網站
+    </a>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1><i class="fas fa-cog"></i> Jason Blog 管理後台</h1>
+            <p>管理您的文章和網站內容</p>
+            
+            <!-- 語言切換器 -->
+            <div class="admin-lang-switcher">
+                <button class="admin-lang-btn active" data-lang="zh" data-zh="中文" data-en="Chinese">中文</button>
+                <button class="admin-lang-btn" data-lang="en" data-zh="English" data-en="English">English</button>
+            </div>
+        </div>
+
+        <!-- 標籤頁導航 -->
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="articles">文章管理</button>
+            <button class="tab-btn" data-tab="new-article">新增文章</button>
+            <button class="tab-btn" data-tab="settings">網站設定</button>
+        </div>
+
+        <!-- 文章管理標籤頁 -->
+        <div id="articles" class="tab-content active">
+            <h2>文章列表</h2>
+            <div id="articlesList" class="articles-list">
+                <!-- 文章列表將由JavaScript動態生成 -->
+            </div>
+        </div>
+
+        <!-- 新增文章標籤頁 -->
+        <div id="new-article" class="tab-content">
+            <h2 data-zh="新增文章" data-en="Add New Article">新增文章</h2>
+            <form id="articleForm">
+                <!-- 中文版本 -->
+                <div class="language-section" data-lang="zh">
+                    <h3><i class="fas fa-flag"></i> 中文版本</h3>
+                    
+                    <div class="form-group">
+                        <label for="articleTitleZh">文章標題 *</label>
+                        <input type="text" id="articleTitleZh" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="articleExcerptZh">文章摘要 *</label>
+                        <textarea id="articleExcerptZh" rows="3" placeholder="請輸入文章摘要，建議100-200字" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="articleContentZh">文章內容 *</label>
+                        <textarea id="articleContentZh" placeholder="請輸入文章內容，支援HTML格式" required></textarea>
+                    </div>
+                </div>
+
+                <!-- 英文版本 -->
+                <div class="language-section" data-lang="en">
+                    <h3><i class="fas fa-flag"></i> English Version</h3>
+                    
+                    <div class="form-group">
+                        <label for="articleTitleEn">Article Title *</label>
+                        <input type="text" id="articleTitleEn" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="articleExcerptEn">Article Excerpt *</label>
+                        <textarea id="articleExcerptEn" rows="3" placeholder="Enter article excerpt, recommended 100-200 words" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="articleContentEn">Article Content *</label>
+                        <textarea id="articleContentEn" placeholder="Enter article content, HTML format supported" required></textarea>
+                    </div>
+                </div>
+
+                <!-- 共用欄位 -->
+                <div class="shared-fields">
+                    <h3><i class="fas fa-cog"></i> <span data-zh="共用設定" data-en="Shared Settings">共用設定</span></h3>
+                    
+                    <div class="form-group">
+                        <label for="articleCategory" data-zh="分類 *" data-en="Category *">分類 *</label>
+                        <select id="articleCategory" required>
+                            <option value="" data-zh="請選擇分類" data-en="Please select category">請選擇分類</option>
+                            <option value="investment" data-zh="投資分析" data-en="Investment Analysis">投資分析</option>
+                            <option value="tech" data-zh="科技股" data-en="Technology Stocks">科技股</option>
+                            <option value="ai" data-zh="AI產業" data-en="AI Industry">AI產業</option>
+                            <option value="news" data-zh="財經新聞" data-en="Financial News">財經新聞</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="articleTags" data-zh="標籤" data-en="Tags">標籤</label>
+                        <input type="text" id="articleTags" placeholder="請用逗號分隔標籤，例如：投資,AMD,AI">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="previewBtn" data-zh="預覽" data-en="Preview">預覽</button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn" data-zh="清空" data-en="Clear">清空</button>
+                    <button type="submit" class="btn btn-primary" id="publishBtn" data-zh="發布文章" data-en="Publish Article">發布文章</button>
+                </div>
+            </form>
+
+            <!-- 預覽區域 -->
+            <div id="previewSection" class="preview-section" style="display: none;">
+                <h3 data-zh="文章預覽" data-en="Article Preview">文章預覽</h3>
+                <div id="previewContent"></div>
+            </div>
+        </div>
+
+        <!-- 網站設定標籤頁 -->
+        <div id="settings" class="tab-content">
+            <h2>網站設定</h2>
+            <div class="form-group">
+                <label for="siteTitle">網站標題</label>
+                <input type="text" id="siteTitle" value="Jason Blog - 財經投資新聞">
+            </div>
+
+            <div class="form-group">
+                <label for="siteDescription">網站描述</label>
+                <textarea id="siteDescription" rows="3">專業的財經投資分析與市場洞察</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="contactEmail">聯絡信箱</label>
+                <input type="email" id="contactEmail" placeholder="your-email@example.com">
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" id="saveSettings">儲存設定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Font Awesome圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- 引入管理後台JavaScript -->
+    <script src="admin.js"></script>
+</body>
+</html>

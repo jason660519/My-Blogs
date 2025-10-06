@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jason Blog - 財經投資新聞</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>Jason Blog</h1>
+                <p data-zh="投資分析 × AI洞察" data-en="Investment Analysis × AI Insights">投資分析 × AI洞察</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" data-zh="首頁" data-en="Home">首頁</a></li>
+                <li><a href="#articles" data-zh="文章" data-en="Articles">文章</a></li>
+                <li><a href="#about" data-zh="關於" data-en="About">關於</a></li>
+                <li><a href="admin.html" data-zh="管理" data-en="Admin">管理</a></li>
+                <li class="language-switcher">
+                    <button class="lang-btn active" data-lang="zh">中文</button>
+                    <button class="lang-btn" data-lang="en">English</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 主要內容區域 -->
+    <main>
+        <!-- 英雄區塊 -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1 data-zh="最新文章" data-en="Latest Articles">最新文章</h1>
+                <p data-zh="探索投資世界的深度分析與AI產業的前沿洞察" data-en="Explore in-depth investment analysis and cutting-edge insights into the AI industry">探索投資世界的深度分析與AI產業的前沿洞察</p>
+            </div>
+        </section>
+
+        <!-- 搜尋區塊 -->
+        <section class="search-section">
+            <div class="container">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="搜尋文章...">
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 文章列表區塊 -->
+        <section class="articles" id="articles">
+            <div class="container">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all" data-zh="全部" data-en="All">全部</button>
+                    <button class="filter-btn" data-filter="investment" data-zh="投資分析" data-en="Investment">投資分析</button>
+                    <button class="filter-btn" data-filter="tech" data-zh="科技股" data-en="Tech">科技股</button>
+                    <button class="filter-btn" data-filter="ai" data-zh="AI產業" data-en="AI">AI產業</button>
+                    <button class="filter-btn" data-filter="news" data-zh="財經新聞" data-en="News">財經新聞</button>
+                </div>
+                <div class="articles-grid" id="articlesGrid">
+                    <!-- 文章卡片將由JavaScript動態生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 分類區塊 -->
+        <section class="categories" id="categories">
+            <div class="container">
+                <h2 data-zh="文章分類" data-en="Categories">文章分類</h2>
+                <div class="categories-grid" id="categoriesGrid">
+                    <!-- 分類卡片將由JavaScript動態生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 關於區塊 -->
+        <section class="about" id="about">
+            <div class="container">
+                <h2 data-zh="關於 Jason Blog" data-en="About Jason Blog">關於 Jason Blog</h2>
+                <div class="about-content">
+                    <p data-zh="歡迎來到 Jason Blog，這裡是投資分析與AI產業洞察的專業平台。我們致力於提供深度的市場分析、前瞻性的投資策略，以及對人工智慧產業發展的獨到見解。" data-en="Welcome to Jason Blog, a professional platform for investment analysis and AI industry insights. We are committed to providing in-depth market analysis, forward-looking investment strategies, and unique insights into the development of the artificial intelligence industry.">歡迎來到 Jason Blog，這裡是投資分析與AI產業洞察的專業平台。我們致力於提供深度的市場分析、前瞻性的投資策略，以及對人工智慧產業發展的獨到見解。</p>
+                    <p data-zh="在這個快速變化的時代，掌握正確的資訊和分析能力至關重要。讓我們一起探索投資的奧秘，把握AI時代的機遇。" data-en="In this rapidly changing era, mastering accurate information and analytical capabilities is crucial. Let's explore the mysteries of investment together and seize the opportunities of the AI era.">在這個快速變化的時代，掌握正確的資訊和分析能力至關重要。讓我們一起探索投資的奧秘，把握AI時代的機遇。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 文章詳情模態框 -->
+    <div id="articleModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="articleContent">
+                <!-- 文章內容將由JavaScript動態載入 -->
+            </div>
+            
+            <!-- 評論區塊 -->
+            <div class="comments-section">
+                <h3>評論</h3>
+                <div class="comment-form">
+                    <textarea id="commentText" placeholder="寫下您的評論..."></textarea>
+                    <button id="submitComment">發表評論</button>
+                </div>
+                <div id="commentsList" class="comments-list">
+                    <!-- 評論將由JavaScript動態生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁腳 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Jason Blog. 版權所有.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
