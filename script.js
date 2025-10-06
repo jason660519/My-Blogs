@@ -3,6 +3,63 @@
  * 包含導航、搜尋、篩選、模態框和評論系統
  */
 
+// 初始化語言設置
+function initializeLanguage() {
+    // 檢查URL參數中的語言設置
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    
+    // 支援的語言列表
+    const supportedLanguages = ['en', 'tw', 'cn', 'jp'];
+    
+    if (urlLang && supportedLanguages.includes(urlLang)) {
+        // 如果URL中有有效的語言參數，使用它
+        currentLanguage = urlLang;
+        localStorage.setItem('preferredLanguage', currentLanguage);
+    } else {
+        // 否則從localStorage載入，如果沒有則使用預設語言
+        currentLanguage = localStorage.getItem('preferredLanguage') || 'tw';
+    }
+    
+    // 更新語言按鈕狀態
+    updateLanguageButtons();
+    
+    // 更新頁面語言
+    updateLanguage();
+}
+
+// 更新語言按鈕狀態
+function updateLanguageButtons() {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-lang') === currentLanguage) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// 更新語言URL
+function updateLanguageUrl(language) {
+    // 檢查當前是否在首頁
+    const currentPath = window.location.pathname;
+    const isHomePage = currentPath === '/' || currentPath === '/index.html' || currentPath.includes('index.html');
+    
+    if (isHomePage) {
+        // 如果在首頁，更新URL為新的語言格式
+        const newUrl = `/home/${language}`;
+        
+        // 使用history API更新URL而不重新載入頁面
+        history.pushState(null, '', newUrl);
+    } else {
+        // 如果不在首頁，只更新查詢參數
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('lang', language);
+        
+        const newUrl = `${currentPath}?${urlParams.toString()}`;
+        history.pushState(null, '', newUrl);
+    }
+}
+
 // 從localStorage載入文章資料，如果沒有則使用預設資料
 let articles = JSON.parse(localStorage.getItem('blogArticles')) || [
     {
@@ -145,11 +202,11 @@ const commentsList = document.getElementById('commentsList');
 let currentFilter = 'all';
 let currentSearchTerm = '';
 let currentArticleId = null;
-let currentLanguage = 'zh';
+let currentLanguage = 'tw';
 
 // 語言包
 const translations = {
-    zh: {
+    tw: {
         'Investment Analysis × AI Insights': '投資分析 × AI洞察',
         'Home': '首頁',
         'Articles': '文章',
@@ -224,6 +281,7 @@ function renderCategories() {
 function initApp() {
     loadArticles();
     setupEventListeners();
+    initializeLanguage(); // 初始化語言設置（包含URL參數檢測）
     initializeLanguagePreference(); // 初始化語言偏好
     initializeCategoryFromURL(); // 從 URL 初始化分類狀態
     renderArticles();
@@ -496,8 +554,8 @@ function renderArticles() {
 function generateUrlSlug(title) {
     return title
         .toLowerCase()
-        .replace(/[^\w\s-]/g, '') // 移除特殊字符
-        .replace(/[\s_-]+/g, '-') // 將空格和下劃線轉換為連字號
+        .replace(/[^a-z0-9\s-]/g, '') // 只保留英文字母、數字、空格和連字號
+        .replace(/[\s_]+/g, '-') // 將空格和下劃線轉換為連字號
         .replace(/^-+|-+$/g, ''); // 移除開頭和結尾的連字號
 }
 
@@ -519,12 +577,21 @@ function getCategorySlug(category) {
 /**
  * 生成新格式的文章URL
  * @param {Object} article - 文章對象
- * @param {string} language - 語言代碼 (zh, en, cn, jp等)
+ * @param {string} language - 語言代碼 (tw, en, cn, jp等)
  * @returns {string} - 新格式的URL
  */
-function generateArticleUrl(article, language = 'zh') {
+function generateArticleUrl(article, language = 'tw') {
     const categorySlug = getCategorySlug(article.category);
-    const titleSlug = generateUrlSlug(article.title);
+    
+    // 統一使用英文標題slug，不論語言版本
+    const englishTitles = {
+        1: "Fortune God is Right Beside You",
+        2: "The Art and Science of Web Development", 
+        3: "Digital Marketing in the Modern Era"
+    };
+    const englishTitle = englishTitles[article.id] || article.title;
+    const titleSlug = generateUrlSlug(englishTitle);
+    
     return `/${categorySlug}/${titleSlug}-${article.id}-${language}`;
 }
 
@@ -552,11 +619,11 @@ function createArticleCard(article) {
         </div>
         <div class="article-actions">
             <a href="${articleUrl}" class="read-more-btn" data-zh="閱讀全文" data-en="Read More">
-                ${currentLanguage === 'zh' ? '閱讀全文' : 'Read More'}
+                ${currentLanguage === 'tw' ? '閱讀全文' : 'Read More'}
             </a>
             <button class="share-btn" onclick="shareArticle(${article.id})" data-zh="分享" data-en="Share">
                 <i class="fas fa-share-alt"></i>
-                ${currentLanguage === 'zh' ? '分享' : 'Share'}
+                ${currentLanguage === 'tw' ? '分享' : 'Share'}
             </button>
         </div>
     `;
@@ -570,7 +637,7 @@ function createArticleCard(article) {
 function formatDate(dateString) {
     const date = new Date(dateString);
     
-    if (currentLanguage === 'zh') {
+    if (currentLanguage === 'tw') {
         return date.toLocaleDateString('zh-TW', {
             year: 'numeric',
             month: 'long',
@@ -631,6 +698,9 @@ function handleLanguageSwitch(e) {
         // 保存語言偏好到 localStorage
         localStorage.setItem('preferredLanguage', currentLanguage);
         
+        // 更新URL以反映語言變更
+        updateLanguageUrl(currentLanguage);
+        
         // 更新界面語言
         updateLanguage();
         
@@ -659,7 +729,7 @@ function handleLanguageSwitch(e) {
 function showLanguageSwitchFeedback(targetLang) {
     const feedback = document.createElement('div');
     feedback.className = 'language-switch-feedback';
-    feedback.textContent = targetLang === 'zh' ? '已切換至中文' : 'Switched to English';
+    feedback.textContent = targetLang === 'tw' ? '已切換至中文' : 'Switched to English';
     feedback.style.cssText = `
         position: fixed;
         top: 20px;
@@ -784,14 +854,14 @@ function initializeLanguagePreference() {
  */
 function updateLanguage() {
     // 更新HTML lang屬性
-    document.documentElement.lang = currentLanguage === 'zh' ? 'zh-TW' : 'en';
+    document.documentElement.lang = currentLanguage === 'tw' ? 'zh-TW' : 'en';
     
     // 更新所有帶有data-zh和data-en屬性的元素
     document.querySelectorAll('[data-zh][data-en]').forEach(element => {
         const zhText = element.getAttribute('data-zh');
         const enText = element.getAttribute('data-en');
         
-        if (currentLanguage === 'zh') {
+        if (currentLanguage === 'tw') {
             element.textContent = zhText;
         } else {
             element.textContent = enText;

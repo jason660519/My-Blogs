@@ -1,20 +1,85 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="tw">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文章路由處理</title>
     <script>
+        // 瀏覽器語言檢測函數
+        function detectBrowserLanguage() {
+            const browserLang = navigator.language || navigator.userLanguage;
+            
+            // 語言映射規則
+            const languageMap = {
+                'zh-TW': 'tw',
+                'zh-Hant': 'tw',
+                'zh-CN': 'cn',
+                'zh-Hans': 'cn',
+                'ja': 'jp',
+                'ja-JP': 'jp'
+            };
+            
+            // 檢查完整語言代碼
+            if (languageMap[browserLang]) {
+                return languageMap[browserLang];
+            }
+            
+            // 檢查語言前綴
+            const langPrefix = browserLang.split('-')[0];
+            if (langPrefix === 'zh') {
+                // 如果是中文但沒有明確區域，預設為正體中文
+                return 'tw';
+            } else if (langPrefix === 'ja') {
+                return 'jp';
+            }
+            
+            // 預設返回英文
+            return 'en';
+        }
+        
         // 客戶端路由處理
         function handleRoute() {
             const path = window.location.pathname;
             
-            // 新格式URL匹配: /[category]/[title-slug]-[id]-[language]
-            const articlePattern = /^\/([^\/]+)\/(.+)-(\d+)-([a-z]{2,3})\/?$/;
-            const match = path.match(articlePattern);
+            // 首頁語言路由匹配: /home/[language]
+            const homePattern = /^\/home\/([a-z]{2,3})\/?$/;
+            const homeMatch = path.match(homePattern);
             
-            if (match) {
-                const [, category, titleSlug, articleId, language] = match;
+            if (homeMatch) {
+                const [, language] = homeMatch;
+                
+                // 支援的語言列表
+                const supportedLanguages = ['en', 'tw', 'cn', 'jp'];
+                
+                if (supportedLanguages.includes(language)) {
+                    // 重定向到index.html並保持語言參數
+                    const newUrl = `index.html?lang=${language}`;
+                    
+                    // 使用history API保持URL不變
+                    history.replaceState(null, '', path);
+                    
+                    // 載入首頁內容
+                    window.location.href = newUrl;
+                } else {
+                    // 不支援的語言，重定向到英文版
+                    window.location.href = '/home/en';
+                }
+                return;
+            }
+            
+            // 根路徑處理 - 自動檢測語言並重定向
+            if (path === '/' || path === '/index.html') {
+                const detectedLang = detectBrowserLanguage();
+                window.location.href = `/home/${detectedLang}`;
+                return;
+            }
+            
+            // 文章URL匹配: /[category]/[title-slug]-[id]-[language]
+            const articlePattern = /^\/([^\/]+)\/(.+)-(\d+)-([a-z]{2,3})\/?$/;
+            const articleMatch = path.match(articlePattern);
+            
+            if (articleMatch) {
+                const [, category, titleSlug, articleId, language] = articleMatch;
                 
                 // 重定向到article.html並保持新URL
                 const newUrl = `article.html?id=${articleId}&lang=${language}`;
@@ -25,8 +90,9 @@
                 // 載入文章頁面內容
                 window.location.href = newUrl;
             } else {
-                // 如果不匹配，重定向到首頁
-                window.location.href = 'index.html';
+                // 如果不匹配任何模式，重定向到自動檢測語言的首頁
+                const detectedLang = detectBrowserLanguage();
+                window.location.href = `/home/${detectedLang}`;
             }
         }
         

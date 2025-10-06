@@ -110,12 +110,12 @@ const defaultArticles = [
 
 // 全域變數
 let currentArticle = null;
-let currentLanguage = 'zh';
+let currentLanguage = 'tw';
 let currentViewMode = 'single';
 
 // 語言包
 const translations = {
-    zh: {
+    tw: {
         // 界面文字
         'Investment Analysis × AI Insights': '投資分析 × AI洞察',
         'Home': '首頁',
@@ -222,10 +222,17 @@ function setupEventListeners() {
 function loadArticleFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const articleId = urlParams.get('id');
+    const language = urlParams.get('lang');
     
     if (!articleId) {
         showError();
         return;
+    }
+    
+    // 設置語言
+    if (language && ['tw', 'en'].includes(language)) {
+        currentLanguage = language;
+        localStorage.setItem('preferredLanguage', language);
     }
     
     loadArticle(parseInt(articleId));
@@ -245,8 +252,8 @@ function loadArticle(articleId) {
         return;
     }
     
-    // 暫時禁用URL更新，避免導航問題
-    // updateBrowserUrl(article, currentLanguage);
+    // 更新瀏覽器URL為新格式
+    updateBrowserUrl(article, currentLanguage);
     
     currentArticle = article;
     displayArticle(article);
@@ -265,7 +272,7 @@ function displayArticle(article) {
     
     // 獲取英文內容
     const englishContent = generateEnglishContent(article);
-    const currentTitle = currentLanguage === 'zh' ? article.title : englishContent.title;
+    const currentTitle = currentLanguage === 'tw' ? article.title : englishContent.title;
     
     // 設置頁面標題
     document.title = `${currentTitle} - Jason Blog`;
@@ -505,7 +512,7 @@ function updateViewMode() {
         bilingualContent.classList.add('hidden');
         
         // 顯示對應語言的內容
-        if (currentLanguage === 'zh') {
+        if (currentLanguage === 'tw') {
             contentZh.classList.remove('hidden');
             contentEn.classList.add('hidden');
         } else {
@@ -525,7 +532,7 @@ function updateViewMode() {
 function showLanguageSwitchFeedback(targetLang) {
     const feedback = document.createElement('div');
     feedback.className = 'language-switch-feedback';
-    feedback.textContent = targetLang === 'zh' ? '已切換至中文' : 'Switched to English';
+    feedback.textContent = targetLang === 'tw' ? '已切換至中文' : 'Switched to English';
     feedback.style.cssText = `
         position: fixed;
         top: 20px;
@@ -589,14 +596,14 @@ function initializeLanguagePreference() {
  */
 function updateLanguage() {
     // 更新HTML lang屬性
-    document.documentElement.lang = currentLanguage === 'zh' ? 'zh-TW' : 'en';
+    document.documentElement.lang = currentLanguage === 'tw' ? 'zh-TW' : 'en';
     
     // 更新所有帶有data-zh和data-en屬性的元素
     document.querySelectorAll('[data-zh][data-en]').forEach(element => {
         const zhText = element.getAttribute('data-zh');
         const enText = element.getAttribute('data-en');
         
-        if (currentLanguage === 'zh') {
+        if (currentLanguage === 'tw') {
             element.textContent = zhText;
         } else {
             element.textContent = enText;
@@ -622,7 +629,7 @@ function getCategoryName(category) {
 function formatDate(dateString) {
     const date = new Date(dateString);
     
-    if (currentLanguage === 'zh') {
+    if (currentLanguage === 'tw') {
         return date.toLocaleDateString('zh-TW', {
             year: 'numeric',
             month: 'long',
@@ -662,13 +669,13 @@ function fallbackShare() {
     // 複製連結到剪貼簿
     navigator.clipboard.writeText(window.location.href).then(() => {
         showNotification(
-            currentLanguage === 'zh' ? '連結已複製到剪貼簿' : 'Link copied to clipboard'
+            currentLanguage === 'tw' ? '連結已複製到剪貼簿' : 'Link copied to clipboard'
         );
     }).catch(() => {
         // 如果剪貼簿API不可用，顯示連結
         const url = window.location.href;
         prompt(
-            currentLanguage === 'zh' ? '請複製以下連結：' : 'Please copy the following link:',
+            currentLanguage === 'tw' ? '請複製以下連結：' : 'Please copy the following link:',
             url
         );
     });
@@ -841,7 +848,7 @@ function displaySingleLanguageContent(article) {
     if (!contentElement) return;
     
     let content;
-    if (currentLanguage === 'zh') {
+    if (currentLanguage === 'tw') {
         content = article.content;
     } else {
         const englishContent = generateEnglishContent(article);
@@ -908,7 +915,7 @@ function addSyncScroll() {
     // 添加視覺反饋
     function addScrollIndicator(element, side) {
         element.addEventListener('scroll', () => {
-            element.style.borderLeft = `4px solid var(--${side === 'zh' ? 'primary' : 'secondary'}-color)`;
+            element.style.borderLeft = `4px solid var(--${side === 'tw' ? 'primary' : 'secondary'}-color)`;
             clearTimeout(element.scrollTimeout);
             element.scrollTimeout = setTimeout(() => {
                 element.style.borderLeft = `4px solid var(--border-color)`;
@@ -916,7 +923,7 @@ function addSyncScroll() {
         });
     }
     
-    addScrollIndicator(zhColumn.parentElement, 'zh');
+    addScrollIndicator(zhColumn.parentElement, 'tw');
     addScrollIndicator(enColumn.parentElement, 'en');
 }
 
@@ -931,8 +938,8 @@ document.addEventListener('DOMContentLoaded', initArticlePage);
 function generateUrlSlug(title) {
     return title
         .toLowerCase()
-        .replace(/[^\w\s-]/g, '') // 移除特殊字符
-        .replace(/[\s_-]+/g, '-') // 將空格和下劃線轉換為連字號
+        .replace(/[^a-z0-9\s-]/g, '') // 只保留英文字母、數字、空格和連字號
+        .replace(/[\s_]+/g, '-') // 將空格和下劃線轉換為連字號
         .replace(/^-+|-+$/g, ''); // 移除開頭和結尾的連字號
 }
 
@@ -954,12 +961,17 @@ function getCategorySlug(category) {
 /**
  * 生成新格式的文章URL
  * @param {Object} article - 文章對象
- * @param {string} language - 語言代碼 (zh, en, cn, jp等)
+ * @param {string} language - 語言代碼 (tw, en, cn, jp等)
  * @returns {string} - 新格式的URL
  */
-function generateArticleUrl(article, language = 'zh') {
+function generateArticleUrl(article, language = 'tw') {
     const categorySlug = getCategorySlug(article.category);
-    const titleSlug = generateUrlSlug(article.title);
+    
+    // 統一使用英文標題slug，不論語言版本
+    const englishContent = generateEnglishContent(article);
+    const englishTitle = englishContent && englishContent.title ? englishContent.title : article.title;
+    const titleSlug = generateUrlSlug(englishTitle);
+    
     return `/${categorySlug}/${titleSlug}-${article.id}-${language}`;
 }
 
@@ -1015,7 +1027,7 @@ function parseArticleId() {
 
 /**
  * 從URL中提取語言代碼
- * @returns {string} - 語言代碼，默認為'zh'
+ * @returns {string} - 語言代碼，默認為'tw'
  */
 function parseLanguageFromUrl() {
     const currentUrl = window.location.href;
@@ -1035,7 +1047,7 @@ function parseLanguageFromUrl() {
     }
     
     // 默認返回中文
-    return 'zh';
+    return 'tw';
 }
 
 /**
@@ -1047,13 +1059,12 @@ function updateBrowserUrl(article, language) {
     if (!article) return;
     
     const newUrl = generateArticleUrl(article, language);
-    const fullUrl = window.location.origin + newUrl;
     
     // 更新瀏覽器URL但不刷新頁面
     window.history.replaceState(
         { articleId: article.id, language: language },
         `${article.title} - Jason Blog`,
-        fullUrl
+        newUrl
     );
     
     // 更新頁面標題

@@ -4,11 +4,11 @@
  */
 
 // 當前語言設定
-let currentAdminLanguage = localStorage.getItem('adminLanguage') || 'zh';
+let currentAdminLanguage = localStorage.getItem('adminLanguage') || 'tw';
 
 // 管理後台翻譯對象
 const adminTranslations = {
-    zh: {
+    tw: {
         articleManagement: '文章管理',
         addNewArticle: '新增文章',
         websiteSettings: '網站設定',
@@ -338,14 +338,14 @@ function handleArticleSubmit(e) {
     
     // 驗證必填欄位（中文版本）
     if (!title || !excerpt || !content || !category) {
-        const errorMsg = currentAdminLanguage === 'zh' ? '請填寫所有中文版本的必填欄位' : 'Please fill in all required fields for Chinese version';
+        const errorMsg = currentAdminLanguage === 'tw' ? '請填寫所有中文版本的必填欄位' : 'Please fill in all required fields for Chinese version';
         showNotification(errorMsg, 'error');
         return;
     }
     
     // 驗證必填欄位（英文版本）
     if (!titleEn || !excerptEn || !contentEn) {
-        const errorMsg = currentAdminLanguage === 'zh' ? '請填寫所有英文版本的必填欄位' : 'Please fill in all required fields for English version';
+        const errorMsg = currentAdminLanguage === 'tw' ? '請填寫所有英文版本的必填欄位' : 'Please fill in all required fields for English version';
         showNotification(errorMsg, 'error');
         return;
     }
@@ -373,7 +373,7 @@ function handleArticleSubmit(e) {
                 ...articlesData[articleIndex],
                 ...articleData
             };
-            const successMsg = currentAdminLanguage === 'zh' ? '文章已成功更新' : 'Article updated successfully';
+            const successMsg = currentAdminLanguage === 'tw' ? '文章已成功更新' : 'Article updated successfully';
             showNotification(successMsg);
         }
         currentEditingId = null;
@@ -384,7 +384,7 @@ function handleArticleSubmit(e) {
             ...articleData
         };
         articlesData.unshift(newArticle);
-        const successMsg = currentAdminLanguage === 'zh' ? '文章已成功發布' : 'Article published successfully';
+        const successMsg = currentAdminLanguage === 'tw' ? '文章已成功發布' : 'Article published successfully';
         showNotification(successMsg);
     }
     
@@ -408,7 +408,7 @@ function handlePreview() {
     const contentEn = document.getElementById('articleContentEn').value.trim();
     
     if (!titleZh || !contentZh) {
-        const message = currentAdminLanguage === 'zh' ? 
+        const message = currentAdminLanguage === 'tw' ? 
             '請至少填寫中文版本的標題和內容才能預覽' : 
             'Please fill in at least the Chinese title and content to preview';
         showNotification(message, 'error');
@@ -416,8 +416,8 @@ function handlePreview() {
     }
     
     // 根據當前語言顯示對應版本
-    const displayTitle = currentAdminLanguage === 'zh' ? titleZh : (titleEn || titleZh);
-    const displayContent = currentAdminLanguage === 'zh' ? contentZh : (contentEn || contentZh);
+    const displayTitle = currentAdminLanguage === 'tw' ? titleZh : (titleEn || titleZh);
+    const displayContent = currentAdminLanguage === 'tw' ? contentZh : (contentEn || contentZh);
     
     previewContent.innerHTML = `
         <h1>${displayTitle}</h1>
@@ -432,7 +432,7 @@ function handlePreview() {
  * 處理清空表單
  */
 function handleClear() {
-    const confirmMsg = currentAdminLanguage === 'zh' ? '確定要清空所有內容嗎？' : 'Are you sure you want to clear all content?';
+    const confirmMsg = currentAdminLanguage === 'tw' ? '確定要清空所有內容嗎？' : 'Are you sure you want to clear all content?';
     if (confirm(confirmMsg)) {
         articleForm.reset();
         previewSection.style.display = 'none';
@@ -442,7 +442,7 @@ function handleClear() {
         const formTitle = document.querySelector('#new-article h2');
         const submitBtn = document.querySelector('#articleForm button[type="submit"]');
         
-        if (currentAdminLanguage === 'zh') {
+        if (currentAdminLanguage === 'tw') {
             formTitle.textContent = '新增文章';
             if (submitBtn) submitBtn.textContent = '發布文章';
         } else {
@@ -558,7 +558,7 @@ function handleAdminLanguageSwitch(e) {
     if (newLanguage && newLanguage !== currentAdminLanguage) {
         // 添加載入狀態
         e.target.style.opacity = '0.7';
-        e.target.textContent = currentAdminLanguage === 'zh' ? '切換中...' : 'Switching...';
+        e.target.textContent = currentAdminLanguage === 'tw' ? '切換中...' : 'Switching...';
         
         setTimeout(() => {
             currentAdminLanguage = newLanguage;
@@ -568,7 +568,7 @@ function handleAdminLanguageSwitch(e) {
             updateAdminLanguage();
             
             // 顯示切換成功訊息
-            const message = newLanguage === 'zh' ? '已切換至中文' : 'Switched to English';
+            const message = newLanguage === 'tw' ? '已切換至中文' : 'Switched to English';
             showNotification(message);
         }, 300);
     }
@@ -584,7 +584,7 @@ function updateAdminLanguageButtons() {
         btn.classList.toggle('active', btnLang === currentAdminLanguage);
         
         // 重置按鈕文字
-        if (btnLang === 'zh') {
+        if (btnLang === 'tw') {
             btn.textContent = '中文';
         } else if (btnLang === 'en') {
             btn.textContent = 'English';
@@ -600,7 +600,7 @@ function updateAdminLanguage() {
     // 更新具有 data-zh 和 data-en 屬性的元素
     const elementsWithLangData = document.querySelectorAll('[data-zh][data-en]');
     elementsWithLangData.forEach(element => {
-        const text = currentAdminLanguage === 'zh' ? element.getAttribute('data-zh') : element.getAttribute('data-en');
+        const text = currentAdminLanguage === 'tw' ? element.getAttribute('data-zh') : element.getAttribute('data-en');
         if (text) {
             element.textContent = text;
         }
@@ -618,7 +618,7 @@ function updateAdminLanguage() {
  */
 function updateAdminFormPlaceholders() {
     const placeholders = {
-        zh: {
+        tw: {
             articleTitle: '請輸入文章標題',
             articleTitleEn: '請輸入英文標題',
             articleExcerpt: '請輸入文章摘要，建議100-200字',
@@ -651,10 +651,10 @@ function updateAdminFormPlaceholders() {
  */
 function updateAdminButtonTexts() {
     const buttons = {
-        previewBtn: currentAdminLanguage === 'zh' ? '預覽' : 'Preview',
-        clearBtn: currentAdminLanguage === 'zh' ? '清空' : 'Clear',
-        publishBtn: currentAdminLanguage === 'zh' ? '發布' : 'Publish',
-        saveSettings: currentAdminLanguage === 'zh' ? '儲存設定' : 'Save Settings'
+        previewBtn: currentAdminLanguage === 'tw' ? '預覽' : 'Preview',
+        clearBtn: currentAdminLanguage === 'tw' ? '清空' : 'Clear',
+        publishBtn: currentAdminLanguage === 'tw' ? '發布' : 'Publish',
+        saveSettings: currentAdminLanguage === 'tw' ? '儲存設定' : 'Save Settings'
     };
     
     Object.keys(buttons).forEach(id => {

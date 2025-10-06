@@ -25,6 +25,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         
         if match:
             category, title_slug, article_id, language = match.groups()
+            # 支援的語言
+            supported_languages = ['tw', 'en']
             # 重寫為舊格式URL
             new_path = f'/article.html?id={article_id}&lang={language}'
             self.path = new_path
