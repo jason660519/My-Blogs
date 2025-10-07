@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL格式測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-link {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            text-decoration: none;
+            color: #333;
+            border-radius: 3px;
+        }
+        .test-link:hover {
+            background: #e5e5e5;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>URL格式測試頁面</h1>
+    
+    <div class="test-section">
+        <h2>新格式URL測試 (推薦格式)</h2>
+        <p>格式：<code>/articles/[語言]/[分類]/[英文標題]/[ID]</code></p>
+        
+        <a href="/articles/tw/investment/fortune-god-beside-you/1" class="test-link" target="_blank">
+            📄 文章1 (繁體中文) - 財神爺就在你身邊
+        </a>
+        
+        <a href="/articles/en/investment/fortune-god-beside-you/1" class="test-link" target="_blank">
+            📄 文章1 (英文) - Fortune God Beside You
+        </a>
+        
+        <a href="/articles/tw/investment/ai-industry-investment-trends/2" class="test-link" target="_blank">
+            📄 文章2 (繁體中文) - AI產業投資趨勢分析
+        </a>
+        
+        <a href="/articles/tw/tech/tech-stock-investment-strategy/3" class="test-link" target="_blank">
+            📄 文章3 (繁體中文) - 科技股投資策略
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>舊格式URL測試 (向下相容)</h2>
+        <p>格式：<code>/[分類]/[標題]-[ID]-[語言]</code></p>
+        
+        <a href="/investment/fortune-god-beside-you-1-tw" class="test-link" target="_blank">
+            📄 文章1 (舊格式) - 財神爺就在你身邊
+        </a>
+        
+        <a href="/investment/ai-industry-investment-trends-2-tw" class="test-link" target="_blank">
+            📄 文章2 (舊格式) - AI產業投資趨勢分析
+        </a>
+        
+        <a href="/tech/tech-stock-investment-strategy-3-tw" class="test-link" target="_blank">
+            📄 文章3 (舊格式) - 科技股投資策略
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>首頁語言測試</h2>
+        <a href="/home/tw" class="test-link" target="_blank">🏠 繁體中文首頁</a>
+        <a href="/home/en" class="test-link" target="_blank">🏠 英文首頁</a>
+        <a href="/home/cn" class="test-link" target="_blank">🏠 簡體中文首頁</a>
+        <a href="/home/jp" class="test-link" target="_blank">🏠 日文首頁</a>
+    </div>
+    
+    <div class="test-section">
+        <h2>測試結果</h2>
+        <div id="test-results">
+            <p>點擊上方連結進行測試...</p>
+        </div>
+    </div>
+    
+    <script>
+        // 簡單的測試結果顯示
+        document.addEventListener('DOMContentLoaded', function() {
+            const resultsDiv = document.getElementById('test-results');
+            
+            // 檢查當前URL是否為測試頁面
+            if (window.location.pathname === '/test_new_urls.html') {
+                resultsDiv.innerHTML = `
+                    <p class="success">✅ 測試頁面載入成功</p>
+                    <p>當前URL: <code>${window.location.href}</code></p>
+                    <p>請點擊上方連結測試各種URL格式</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

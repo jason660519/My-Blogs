@@ -101,7 +101,8 @@ function updateLanguageUrl(language) {
 }
 
 // 從localStorage載入文章資料，如果沒有則使用預設資料
-let articles = JSON.parse(localStorage.getItem('blogArticles')) || [
+// 將articles變數暴露到全域範圍，以便article.js可以訪問
+window.articles = JSON.parse(localStorage.getItem('blogArticles')) || [
     {
         id: 1,
         category: "investment",
@@ -620,7 +621,7 @@ const translations = {
  */
 function loadArticles() {
     // 文章資料已經在全域變數中定義，這裡可以進行額外的初始化
-    console.log('文章資料已載入:', articles.length, '篇文章');
+    console.log('文章資料已載入:', window.articles.length, '篇文章');
 }
 
 /**
@@ -893,7 +894,7 @@ function renderArticles() {
         return;
     }
     
-    let filteredArticles = articles;
+    let filteredArticles = window.articles;
     
     // 應用分類篩選
     if (currentFilter !== 'all') {
@@ -942,15 +943,15 @@ function renderArticles() {
 }
 
 /**
- * 生成URL slug（使用底線作為分隔符）
+ * 生成URL slug（使用連字號作為分隔符）
  * @param {string} title - 文章標題
  * @returns {string} - URL slug
  */
 function generateUrlSlug(title) {
     return title.toLowerCase()
         .replace(/[^\w\s-]/g, '') // 移除特殊字符
-        .replace(/[\s_-]+/g, '_') // 將空格、底線、連字號統一替換為底線
-        .replace(/^_+|_+$/g, ''); // 移除開頭和結尾的底線
+        .replace(/[\s_-]+/g, '-') // 將空格、底線、連字號統一替換為連字號
+        .replace(/^-+|-+$/g, ''); // 移除開頭和結尾的連字號
 }
 
 /**
@@ -972,7 +973,7 @@ function getCategorySlug(category) {
  * 生成新格式的文章URL
  * @param {Object} article - 文章對象
  * @param {string} language - 語言代碼 (tw, en, cn, jp等)
- * @returns {string} - 新格式的URL
+ * @returns {string} - 新格式的URL: /articles/[language]/[category]/[english-title-slug]/[id]
  */
 function generateArticleUrl(article, language = 'tw') {
     const categorySlug = getCategorySlug(article.category);
@@ -985,7 +986,101 @@ function generateArticleUrl(article, language = 'tw') {
     };
     const englishSlug = englishTitles[article.id] || generateUrlSlug(article.title);
     
+    // 新格式: /articles/[language]/[category]/[english-title-slug]/[id]
+    return `/articles/${language}/${categorySlug}/${englishSlug}/${article.id}`;
+}
+
+/**
+ * 生成舊格式的文章URL (向下相容性)
+ * @param {Object} article - 文章對象
+ * @param {string} language - 語言代碼 (tw, en, cn, jp等)
+ * @returns {string} - 舊格式的URL: /[category]/[title-slug]-[id]-[language]
+ */
+function generateLegacyArticleUrl(article, language = 'tw') {
+    const categorySlug = getCategorySlug(article.category);
+    
+    // 統一使用英文標題slug，不論語言版本
+    const englishTitles = {
+        1: "fortune-god-beside-you",
+        2: "ai-industry-investment-trends", 
+        3: "tech-stock-investment-strategy"
+    };
+    const englishSlug = englishTitles[article.id] || generateUrlSlug(article.title);
+    
+    // 舊格式: /[category]/[title-slug]-[id]-[language]
     return `/${categorySlug}/${englishSlug}-${article.id}-${language}`;
+}
+
+/**
+ * 解析文章URL，支援新舊格式
+ * @param {string} url - 要解析的URL
+ * @returns {Object|null} - 解析結果 {articleId, language, category, titleSlug} 或 null
+ */
+function parseArticleUrl(url) {
+    // 移除查詢參數和錨點
+    const cleanUrl = url.split('?')[0].split('#')[0];
+    
+    // 新格式: /articles/[language]/[category]/[english-title-slug]/[id]
+    const newFormatMatch = cleanUrl.match(/^\/articles\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(\d+)\/?$/);
+    if (newFormatMatch) {
+        return {
+            articleId: parseInt(newFormatMatch[4]),
+            language: newFormatMatch[1],
+            category: newFormatMatch[2],
+            titleSlug: newFormatMatch[3],
+            format: 'new'
+        };
+    }
+    
+    // 舊格式: /[category]/[title-slug]-[id]-[language]
+    const legacyFormatMatch = cleanUrl.match(/^\/([^\/]+)\/([^-]+(?:-[^-]+)*)-(\d+)-([^\/]+)\/?$/);
+    if (legacyFormatMatch) {
+        return {
+            articleId: parseInt(legacyFormatMatch[3]),
+            language: legacyFormatMatch[4],
+            category: legacyFormatMatch[1],
+            titleSlug: legacyFormatMatch[2],
+            format: 'legacy'
+        };
+    }
+    
+    return null;
+}
+
+/**
+ * 從URL中解析文章ID
+ * @returns {number|null} - 文章ID或null
+ */
+function parseArticleIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // 首先嘗試從新格式URL解析
+    const parsedUrl = parseArticleUrl(window.location.pathname);
+    if (parsedUrl) {
+        return parsedUrl.articleId;
+    }
+    
+    // 回退到查詢參數
+    const idParam = urlParams.get('id');
+    return idParam ? parseInt(idParam) : null;
+}
+
+/**
+ * 從URL中解析語言代碼
+ * @returns {string} - 語言代碼，預設為'tw'
+ */
+function parseLanguageFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // 首先嘗試從新格式URL解析
+    const parsedUrl = parseArticleUrl(window.location.pathname);
+    if (parsedUrl) {
+        return parsedUrl.language;
+    }
+    
+    // 回退到查詢參數
+    const langParam = urlParams.get('lang');
+    return langParam || 'tw';
 }
 
 /**
@@ -1004,8 +1099,8 @@ function createArticleCard(article) {
     const excerpt = currentLangContent.excerpt || '';
     const tags = currentLangContent.tags || [];
     
-    // 使用舊格式URL確保連結正常工作，文章頁面載入後會更新為新格式
-    const articleUrl = `article.html?id=${article.id}&lang=${currentLanguage}`;
+    // 使用新格式URL，如果失敗則回退到舊格式
+    const articleUrl = generateArticleUrl(article, currentLanguage);
     
     // 獲取翻譯文字
     const readMoreText = translations[currentLanguage]['Read More'] || '閱讀更多';
@@ -1061,12 +1156,18 @@ function formatDate(dateString) {
 /**
  * 打開文章詳情
  */
+/**
+ * 開啟文章頁面，使用新的URL格式
+ * @param {number} articleId - 文章ID
+ */
 function openArticle(articleId) {
-    const article = articles.find(a => a.id === parseInt(articleId));
+    const article = window.articles.find(a => a.id === parseInt(articleId));
     if (!article) return;
     
-    // 導航到獨立的文章頁面
-    window.location.href = `article.html?id=${articleId}`;
+    // 使用新的URL格式導航到文章頁面
+    const newUrl = generateArticleUrl(article, currentLanguage);
+    // 修正：使用查詢參數格式，而非直接拼接URL
+    window.location.href = `article.html?url=${encodeURIComponent(newUrl)}`;
 }
 
 /**
@@ -1432,6 +1533,81 @@ function handleCommentSubmit() {
 /**
  * 顯示通知訊息
  */
+/**
+ * 分享文章功能
+ * @param {Object} article - 文章對象
+ * @param {string} language - 當前語言
+ */
+function shareArticle(article, language = 'tw') {
+    const articleContent = article.multilingual[language] || article.multilingual.tw;
+    const articleUrl = window.location.origin + generateArticleUrl(article, language);
+    const shareData = {
+        title: articleContent.title,
+        text: articleContent.excerpt,
+        url: articleUrl
+    };
+
+    // 檢查是否支援 Web Share API
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => {
+                showNotification(translations[currentLanguage]['Share'] + ' 成功！');
+            })
+            .catch((error) => {
+                console.log('分享失敗:', error);
+                // 降級到複製連結
+                fallbackShare(articleUrl);
+            });
+    } else {
+        // 降級到複製連結
+        fallbackShare(articleUrl);
+    }
+}
+
+/**
+ * 降級分享方法：複製連結到剪貼簿
+ * @param {string} url - 要複製的URL
+ */
+function fallbackShare(url) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url)
+            .then(() => {
+                showNotification('連結已複製到剪貼簿！');
+            })
+            .catch(() => {
+                // 如果 clipboard API 也失敗，使用傳統方法
+                legacyCopyToClipboard(url);
+            });
+    } else {
+        legacyCopyToClipboard(url);
+    }
+}
+
+/**
+ * 傳統複製到剪貼簿方法
+ * @param {string} text - 要複製的文字
+ */
+function legacyCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showNotification('連結已複製到剪貼簿！');
+    } catch (err) {
+        console.error('複製失敗:', err);
+        showNotification('複製失敗，請手動複製連結');
+    } finally {
+        document.body.removeChild(textArea);
+    }
+}
+
 function showNotification(message) {
     const notification = document.createElement('div');
     notification.className = 'notification';

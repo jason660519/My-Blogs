@@ -39,27 +39,47 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.path = new_path
                 print(f"不支援語言，重定向到預設: {path} -> {new_path}")
         
-        # 文章URL匹配: /[category]/[title-slug]-[id]-[language]
-        elif path.startswith('/') and path.count('/') >= 2:
-            article_pattern = r'^/([^/]+)/(.+)-(\d+)-([a-z]{2,3})/?$'
-            match = re.match(article_pattern, path)
+        # 新格式文章URL匹配: /articles/[language]/[category]/[title]/[id]
+        elif path.startswith('/articles/'):
+            new_article_pattern = r'^/articles/([a-z]{2,3})/([^/]+)/([^/]+)/(\d+)/?$'
+            new_match = re.match(new_article_pattern, path)
             
-            if match:
-                category, title_slug, article_id, language = match.groups()
+            if new_match:
+                language, category, title_slug, article_id = new_match.groups()
                 if language in supported_languages:
                     # 重寫為文章頁面
                     new_path = f'/article.html?id={article_id}&lang={language}'
                     self.path = new_path
-                    print(f"文章URL重寫: {path} -> {new_path}")
+                    print(f"新格式文章URL重寫: {path} -> {new_path}")
         
-        # 處理根目錄 - 自動偵測語言
-        elif path == '/':
-            # 檢查Accept-Language標頭
-            accept_language = self.headers.get('Accept-Language', '')
-            detected_lang = self._detect_language(accept_language)
-            new_path = f'/index.html?lang={detected_lang}'
-            self.path = new_path
-            print(f"根目錄語言偵測: {path} -> {new_path} (偵測語言: {detected_lang})")
+        # 舊格式文章URL匹配: /[category]/[title-slug]-[id]-[language] (向下相容)
+        elif path.startswith('/') and path.count('/') >= 2:
+            legacy_article_pattern = r'^/([^/]+)/(.+)-(\d+)-([a-z]{2,3})/?$'
+            legacy_match = re.match(legacy_article_pattern, path)
+            
+            if legacy_match:
+                category, title_slug, article_id, language = legacy_match.groups()
+                if language in supported_languages:
+                    # 重寫為文章頁面
+                    new_path = f'/article.html?id={article_id}&lang={language}'
+                    self.path = new_path
+                    print(f"舊格式文章URL重寫: {path} -> {new_path}")
+        
+        # 處理根目錄請求 - 直接提供首頁內容
+        elif path == '/' or path == '/index.html':
+            # 直接提供 index.html 內容，不進行重定向
+            try:
+                with open('index.html', 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+                return
+            except FileNotFoundError:
+                self.send_error(404, "首頁檔案未找到")
+                return
         
         # 處理查詢參數格式的文章頁面: /article.html?id=...&lang=...
         elif path == '/article.html' and parsed_path.query:
@@ -145,8 +165,12 @@ def run_server(port=8000):
         print("    - http://localhost:{}/home/cn (簡體中文)".format(port))
         print("    - http://localhost:{}/home/jp (日文)".format(port))
         print("  文章頁面:")
-        print("    - /[category]/[title-slug]-[id]-[language]")
-        print("    - 例如: /investment/fortune-god-beside-you-1-tw")
+        print("    新格式 (推薦):")
+        print("      - /articles/[language]/[category]/[title]/[id]")
+        print("      - 例如: /articles/tw/investment/fortune-god-beside-you/1")
+        print("    舊格式 (向下相容):")
+        print("      - /[category]/[title-slug]-[id]-[language]")
+        print("      - 例如: /investment/fortune-god-beside-you-1-tw")
         print("  根目錄 (/) 會自動偵測瀏覽器語言")
         print("\n按 Ctrl+C 停止伺服器")
         

@@ -225,21 +225,59 @@ function setupEventListeners() {
  * 從URL載入文章
  */
 function loadArticleFromURL() {
+    let articleId = null;
+    let language = null;
+    
     const urlParams = new URLSearchParams(window.location.search);
-    const articleId = urlParams.get('id');
-    const language = urlParams.get('lang');
+    
+    // 檢查是否有 url 參數（新格式）
+    const urlParam = urlParams.get('url');
+    if (urlParam) {
+        // 解析新格式URL：/articles/[language]/[category]/[title]/[id]
+        if (typeof parseArticleUrl === 'function') {
+            const parsedUrl = parseArticleUrl(decodeURIComponent(urlParam));
+            if (parsedUrl) {
+                articleId = parsedUrl.articleId;
+                language = parsedUrl.language;
+            }
+        }
+    }
+    
+    // 如果新格式解析失敗，回退到傳統查詢參數方式
+    if (!articleId) {
+        articleId = urlParams.get('id');
+        language = urlParams.get('lang');
+    }
+    
+    // 如果還是沒有找到，嘗試解析路徑
+    if (!articleId && typeof parseArticleUrl === 'function') {
+        const parsedUrl = parseArticleUrl(window.location.pathname);
+        if (parsedUrl) {
+            articleId = parsedUrl.articleId;
+            language = parsedUrl.language;
+        }
+    }
     
     if (!articleId) {
         showError();
         return;
     }
     
-    // 設定語言
+    // 設定語言（在調用loadArticle之前）
     if (language && ['tw', 'en', 'cn', 'jp'].includes(language)) {
         articleCurrentLanguage = language;
         localStorage.setItem('preferredLanguage', language);
+    } else {
+        // 如果沒有指定語言，使用預設語言或從localStorage取得
+        const savedLanguage = localStorage.getItem('preferredLanguage');
+        if (savedLanguage && ['tw', 'en', 'cn', 'jp'].includes(savedLanguage)) {
+            articleCurrentLanguage = savedLanguage;
+        } else {
+            articleCurrentLanguage = 'tw'; // 預設為繁體中文
+        }
     }
     
+    console.log('Loading article:', articleId, 'with language:', articleCurrentLanguage);
     loadArticle(parseInt(articleId));
 }
 
@@ -251,7 +289,10 @@ async function loadArticleFromMarkdown(articleId, language = 'tw') {
         // 根據文章ID和語言代碼構建檔案路徑
         const filePath = getMarkdownFilePath(articleId, language);
         
-        const response = await fetch(filePath);
+        // 確保使用絕對路徑，從網站根目錄開始
+        const absolutePath = filePath.startsWith('/') ? filePath : '/' + filePath;
+        
+        const response = await fetch(absolutePath);
         if (!response.ok) {
             throw new Error(`Failed to load markdown file: ${response.status}`);
         }
@@ -305,7 +346,20 @@ function getMarkdownFilePath(articleId, language) {
         }
     };
     
-    return fileMap[articleId] && fileMap[articleId][language] 
+    // 檢查文章ID是否存在
+    if (!fileMap[articleId]) {
+        console.error(`Article ID ${articleId} not found in fileMap`);
+        return null;
+    }
+    
+    // 檢查語言代碼是否存在
+    if (!fileMap[articleId][language]) {
+        console.error(`Language ${language} not found for article ${articleId}`);
+        // 如果指定語言不存在，回退到繁體中文
+        return fileMap[articleId]['tw'] || null;
+    }
+    
+    return fileMap[articleId][language] 
         ? fileMap[articleId][language] 
         : null;
 }
@@ -376,15 +430,17 @@ async function loadArticle(articleId) {
             
             // 設置文章導航
             setupArticleNavigation(articleId);
+            
+            hideLoading();
         } else {
             // 如果 Markdown 檔案載入失敗，回退到硬編碼內容
+            // 注意：不在這裡調用 hideLoading()，讓 loadArticleFromFallback 處理
             loadArticleFromFallback(articleId);
         }
     } catch (error) {
         console.error('Error loading article:', error);
+        // 注意：不在這裡調用 hideLoading()，讓 loadArticleFromFallback 處理
         loadArticleFromFallback(articleId);
-    } finally {
-        hideLoading();
     }
 }
 
@@ -481,11 +537,46 @@ function displayArticle(article) {
         ).join('');
     }
     
-    // 設置文章內容
-    const zhContent = article.multilingual?.tw?.content || article.content || '';
-    const enContent = article.multilingual?.en?.content || '';
-    const cnContent = article.multilingual?.cn?.content || zhContent;
-    const jpContent = article.multilingual?.jp?.content || zhContent;
+    // 設置文章內容 - 處理從Markdown載入的文章
+    let zhContent, enContent, cnContent, jpContent;
+    
+    if (article.multilingual) {
+        // 多語言格式的文章
+        zhContent = article.multilingual.tw?.content || '';
+        enContent = article.multilingual.en?.content || '';
+        cnContent = article.multilingual.cn?.content || zhContent;
+        jpContent = article.multilingual.jp?.content || zhContent;
+    } else {
+        // 從Markdown載入的單語言文章
+        const content = article.content || '';
+        if (articleCurrentLanguage === 'tw') {
+            zhContent = content;
+            enContent = '';
+            cnContent = content;
+            jpContent = content;
+        } else if (articleCurrentLanguage === 'en') {
+            zhContent = '';
+            enContent = content;
+            cnContent = '';
+            jpContent = '';
+        } else if (articleCurrentLanguage === 'cn') {
+            zhContent = '';
+            enContent = '';
+            cnContent = content;
+            jpContent = '';
+        } else if (articleCurrentLanguage === 'jp') {
+            zhContent = '';
+            enContent = '';
+            cnContent = '';
+            jpContent = content;
+        } else {
+            // 預設顯示在繁體中文區域
+            zhContent = content;
+            enContent = '';
+            cnContent = content;
+            jpContent = content;
+        }
+    }
     
     // 根據當前語言顯示對應內容
     contentZh.innerHTML = zhContent;
@@ -501,29 +592,8 @@ function displayArticle(article) {
         document.getElementById('contentJp').innerHTML = jpContent;
     }
     
-    /**
-     * 更新檢視模式
-     */
-    function updateViewMode() {
-        if (currentViewMode === 'single') {
-            // 單語模式
-            singleLanguageContent.classList.remove('hidden');
-            bilingualContent.classList.add('hidden');
-            
-            // 顯示對應語言的內容
-            if (articleCurrentLanguage === 'tw') {
-                contentZh.classList.remove('hidden');
-                contentEn.classList.add('hidden');
-            } else {
-                contentZh.classList.add('hidden');
-                contentEn.classList.remove('hidden');
-            }
-        } else {
-            // 雙語對照模式
-            singleLanguageContent.classList.add('hidden');
-            bilingualContent.classList.remove('hidden');
-        }
-    }
+    // 更新檢視模式
+    updateViewMode();
 }
 
 /**
@@ -715,13 +785,38 @@ function updateViewMode() {
         singleLanguageContent.classList.remove('hidden');
         bilingualContent.classList.add('hidden');
         
+        // 隱藏所有語言內容
+        contentZh.classList.add('hidden');
+        contentEn.classList.add('hidden');
+        if (document.getElementById('contentCn')) {
+            document.getElementById('contentCn').classList.add('hidden');
+        }
+        if (document.getElementById('contentJp')) {
+            document.getElementById('contentJp').classList.add('hidden');
+        }
+        
         // 顯示對應語言的內容
         if (articleCurrentLanguage === 'tw') {
             contentZh.classList.remove('hidden');
-            contentEn.classList.add('hidden');
-        } else {
-            contentZh.classList.add('hidden');
+        } else if (articleCurrentLanguage === 'en') {
             contentEn.classList.remove('hidden');
+        } else if (articleCurrentLanguage === 'cn') {
+            // 如果有簡體中文容器就顯示，否則顯示繁體中文
+            if (document.getElementById('contentCn')) {
+                document.getElementById('contentCn').classList.remove('hidden');
+            } else {
+                contentZh.classList.remove('hidden');
+            }
+        } else if (articleCurrentLanguage === 'jp') {
+            // 如果有日文容器就顯示，否則顯示繁體中文
+            if (document.getElementById('contentJp')) {
+                document.getElementById('contentJp').classList.remove('hidden');
+            } else {
+                contentZh.classList.remove('hidden');
+            }
+        } else {
+            // 預設顯示繁體中文
+            contentZh.classList.remove('hidden');
         }
     } else {
         // 雙語對照模式
@@ -1143,8 +1238,9 @@ function generateUrlSlug(title) {
     return title
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, '') // 只保留英文字母、數字、空格和連字號
-        .replace(/[\s_]+/g, '-') // 將空格和下劃線轉換為連字號
-        .replace(/^-+|-+$/g, ''); // 移除開頭和結尾的連字號
+        .replace(/\s+/g, '-') // 空格替換為連字符
+        .replace(/-+/g, '-') // 多個連字符合併為一個
+        .replace(/^-|-$/g, ''); // 移除開頭和結尾的連字符
 }
 
 /**
@@ -1176,11 +1272,28 @@ function generateArticleUrl(article, language = 'tw') {
     const englishTitle = englishContent && englishContent.title ? englishContent.title : article.title;
     const titleSlug = generateUrlSlug(englishTitle);
     
+    return `/articles/${language}/${categorySlug}/${titleSlug}/${article.id}`;
+}
+
+/**
+ * 生成舊格式的文章URL（向下相容）
+ * @param {Object} article - 文章對象
+ * @param {string} language - 語言代碼
+ * @returns {string} - 舊格式的URL
+ */
+function generateLegacyArticleUrl(article, language = 'tw') {
+    const categorySlug = getCategorySlug(article.category);
+    
+    // 統一使用英文標題slug，不論語言版本
+    const englishContent = generateEnglishContent(article);
+    const englishTitle = englishContent && englishContent.title ? englishContent.title : article.title;
+    const titleSlug = generateUrlSlug(englishTitle);
+    
     return `/${categorySlug}/${titleSlug}-${article.id}-${language}`;
 }
 
 /**
- * 解析新格式的文章URL
+ * 解析文章URL（支援新舊格式）
  * @param {string} url - URL字符串
  * @returns {Object|null} - 解析結果 {articleId, language, category, titleSlug}
  */
@@ -1188,11 +1301,22 @@ function parseArticleUrl(url) {
     // 移除域名和協議，只保留路徑
     const path = url.replace(/^https?:\/\/[^\/]+/, '');
     
-    // 新格式: /[category]/[title-slug]-[id]-[language]
-    const newFormatMatch = path.match(/^\/([^\/]+)\/(.+)-(\d+)-([a-z]{2,3})$/);
-    
+    // 新格式: /articles/[language]/[category]/[title-slug]/[id]
+    const newFormatMatch = path.match(/^\/articles\/([a-z]{2,3})\/([^\/]+)\/([^\/]+)\/(\d+)$/);
     if (newFormatMatch) {
-        const [, category, titleSlug, articleId, language] = newFormatMatch;
+        const [, language, category, titleSlug, articleId] = newFormatMatch;
+        return {
+            articleId: parseInt(articleId),
+            language: language,
+            category: category,
+            titleSlug: titleSlug
+        };
+    }
+    
+    // 舊格式: /[category]/[title-slug]-[id]-[language]
+    const legacyFormatMatch = path.match(/^\/([^\/]+)\/(.+)-(\d+)-([a-z]{2,3})$/);
+    if (legacyFormatMatch) {
+        const [, category, titleSlug, articleId, language] = legacyFormatMatch;
         return {
             articleId: parseInt(articleId),
             language: language,

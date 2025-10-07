@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL 函數測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+            font-family: monospace;
+        }
+        .success {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>URL 函數測試頁面</h1>
+    
+    <div class="test-section">
+        <h2>測試文章資料</h2>
+        <div id="testData"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>URL 生成測試</h2>
+        <button onclick="testUrlGeneration()">測試 URL 生成</button>
+        <div id="urlGenerationResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>URL 解析測試</h2>
+        <button onclick="testUrlParsing()">測試 URL 解析</button>
+        <div id="urlParsingResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>向下相容性測試</h2>
+        <button onclick="testBackwardCompatibility()">測試向下相容性</button>
+        <div id="backwardCompatibilityResults"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // 測試文章資料
+        const testArticle = {
+            id: 1,
+            title: "財神爺就在你身邊",
+            category: "investment",
+            date: "2024-01-15",
+            excerpt: "未來兩年，AMD 的股價會飆升且流動性會枯竭...",
+            tags: ["AMD", "OpenAI", "投資", "AI", "股票分析"]
+        };
+
+        // 顯示測試資料
+        function displayTestData() {
+            const testDataDiv = document.getElementById('testData');
+            testDataDiv.innerHTML = `
+                <div class="test-result">
+                    <strong>測試文章:</strong><br>
+                    ID: ${testArticle.id}<br>
+                    標題: ${testArticle.title}<br>
+                    分類: ${testArticle.category}<br>
+                    日期: ${testArticle.date}
+                </div>
+            `;
+        }
+
+        // 測試 URL 生成
+        function testUrlGeneration() {
+            const resultsDiv = document.getElementById('urlGenerationResults');
+            let results = '';
+
+            const languages = ['tw', 'en', 'cn', 'jp'];
+            
+            languages.forEach(lang => {
+                try {
+                    // 測試新格式
+                    const newUrl = generateArticleUrl(testArticle, lang);
+                    results += `<div class="test-result success">
+                        <strong>新格式 (${lang}):</strong> ${newUrl}
+                    </div>`;
+
+                    // 測試舊格式（向下相容）
+                    const legacyUrl = generateLegacyArticleUrl(testArticle, lang);
+                    results += `<div class="test-result">
+                        <strong>舊格式 (${lang}):</strong> ${legacyUrl}
+                    </div>`;
+                } catch (error) {
+                    results += `<div class="test-result error">
+                        <strong>錯誤 (${lang}):</strong> ${error.message}
+                    </div>`;
+                }
+            });
+
+            resultsDiv.innerHTML = results;
+        }
+
+        // 測試 URL 解析
+        function testUrlParsing() {
+            const resultsDiv = document.getElementById('urlParsingResults');
+            let results = '';
+
+            // 測試 URL 列表
+            const testUrls = [
+                // 新格式
+                '/articles/tw/investment/cai-shen-ye-jiu-zai-ni-shen-bian/1',
+                '/articles/en/investment/cai-shen-ye-jiu-zai-ni-shen-bian/1',
+                // 舊格式
+                '/investment/cai-shen-ye-jiu-zai-ni-shen-bian-1-tw',
+                '/investment/cai-shen-ye-jiu-zai-ni-shen-bian-1-en',
+                // 完整 URL
+                'http://localhost:8000/articles/tw/investment/cai-shen-ye-jiu-zai-ni-shen-bian/1',
+                'http://localhost:8000/investment/cai-shen-ye-jiu-zai-ni-shen-bian-1-tw'
+            ];
+
+            testUrls.forEach(url => {
+                try {
+                    const parsed = parseArticleUrl(url);
+                    if (parsed) {
+                        results += `<div class="test-result success">
+                            <strong>URL:</strong> ${url}<br>
+                            <strong>解析結果:</strong> ID=${parsed.articleId || parsed.id}, 語言=${parsed.language}, 分類=${parsed.category}, 標題=${parsed.titleSlug}
+                        </div>`;
+                    } else {
+                        results += `<div class="test-result error">
+                            <strong>URL:</strong> ${url}<br>
+                            <strong>解析失敗</strong>
+                        </div>`;
+                    }
+                } catch (error) {
+                    results += `<div class="test-result error">
+                        <strong>URL:</strong> ${url}<br>
+                        <strong>錯誤:</strong> ${error.message}
+                    </div>`;
+                }
+            });
+
+            resultsDiv.innerHTML = results;
+        }
+
+        // 測試向下相容性
+        function testBackwardCompatibility() {
+            const resultsDiv = document.getElementById('backwardCompatibilityResults');
+            let results = '';
+
+            // 測試 parseArticleIdFromUrl 函數
+            const testUrls = [
+                '/articles/tw/investment/cai-shen-ye-jiu-zai-ni-shen-bian/1',
+                '/investment/cai-shen-ye-jiu-zai-ni-shen-bian-1-tw',
+                'article.html?id=1'
+            ];
+
+            testUrls.forEach(url => {
+                try {
+                    // 模擬 window.location
+                    const originalLocation = window.location;
+                    Object.defineProperty(window, 'location', {
+                        value: new URL(url, 'http://localhost:8000'),
+                        writable: true
+                    });
+
+                    const articleId = parseArticleIdFromUrl(url);
+                    const language = parseLanguageFromUrl(url);
+
+                    results += `<div class="test-result success">
+                        <strong>URL:</strong> ${url}<br>
+                        <strong>文章ID:</strong> ${articleId}<br>
+                        <strong>語言:</strong> ${language}
+                    </div>`;
+
+                    // 恢復原始 location
+                    Object.defineProperty(window, 'location', {
+                        value: originalLocation,
+                        writable: true
+                    });
+                } catch (error) {
+                    results += `<div class="test-result error">
+                        <strong>URL:</strong> ${url}<br>
+                        <strong>錯誤:</strong> ${error.message}
+                    </div>`;
+                }
+            });
+
+            resultsDiv.innerHTML = results;
+        }
+
+        // 頁面載入時顯示測試資料
+        document.addEventListener('DOMContentLoaded', function() {
+            displayTestData();
+        });
+    </script>
+</body>
+</html>
