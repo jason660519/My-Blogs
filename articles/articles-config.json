@@ -1,0 +1,72 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "slug": "fortune-god-beside-you",
+      "category": "investment",
+      "date": "2024-01-15",
+      "author": "Jason",
+      "featured": true,
+      "status": "published",
+      "multilingual": {
+        "tw": {
+          "title": "財神爺就在你身邊",
+          "excerpt": "未來兩年，AMD 的股價會飆升且流動性會枯竭，同樣的採購需求，到了外星人的腦袋。卻是如此的簡單粗暴...",
+          "tags": ["AMD", "OpenAI", "投資", "AI", "股票分析"],
+          "file": "investment/fortune-god-beside-you-tw.md"
+        },
+        "en": {
+          "title": "Fortune God Beside You",
+          "excerpt": "In the next two years, AMD's stock price will soar and liquidity will dry up. The same procurement demand, when it reaches the alien minds, becomes so simple and brutal...",
+          "tags": ["AMD", "OpenAI", "Investment", "AI", "Stock Analysis"],
+          "file": "investment/fortune-god-beside-you-en.md"
+        },
+        "cn": {
+          "title": "财神爷就在你身边",
+          "excerpt": "未来两年，AMD 的股价会飙升且流动性会枯竭，同样的采购需求，到了外星人的脑袋。却是如此的简单粗暴...",
+          "tags": ["AMD", "OpenAI", "投资", "AI", "股票分析"],
+          "file": "investment/fortune-god-beside-you-cn.md"
+        },
+        "jp": {
+          "title": "財神様があなたのそばに",
+          "excerpt": "今後2年間で、AMDの株価は急騰し、流動性は枯渇するでしょう。同じ調達需要が、エイリアンの頭脳に到達すると、こんなにもシンプルで粗暴になります...",
+          "tags": ["AMD", "OpenAI", "投資", "AI", "株式分析"],
+          "file": "investment/fortune-god-beside-you-jp.md"
+        }
+      }
+    }
+  ],
+  "categories": {
+    "investment": {
+      "tw": "投資理財",
+      "en": "Investment",
+      "cn": "投资理财",
+      "jp": "投資"
+    },
+    "technology": {
+      "tw": "科技趨勢",
+      "en": "Technology",
+      "cn": "科技趋势",
+      "jp": "テクノロジー"
+    },
+    "lifestyle": {
+      "tw": "生活風格",
+      "en": "Lifestyle",
+      "cn": "生活方式",
+      "jp": "ライフスタイル"
+    },
+    "tutorial": {
+      "tw": "教學指南",
+      "en": "Tutorial",
+      "cn": "教程指南",
+      "jp": "チュートリアル"
+    }
+  },
+  "settings": {
+    "defaultLanguage": "tw",
+    "supportedLanguages": ["tw", "en", "cn", "jp"],
+    "articlesPerPage": 6,
+    "enableComments": true,
+    "enableSharing": true
+  }
+}

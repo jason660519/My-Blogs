@@ -5,6 +5,7 @@
 
 // 全域變數
 let currentLanguage = 'tw';
+let articleManager = null;
 
 
 
@@ -64,7 +65,7 @@ function initializeLanguage() {
     }
     
     // 更新 URL 以反映當前語言設定
-    updateLanguageUrl(currentLanguage);
+    // updateLanguageUrl(currentLanguage); // 暫時禁用以防止無限循環
     
     // 保存語言偏好
     localStorage.setItem('preferredLanguage', currentLanguage);
@@ -80,6 +81,10 @@ function initializeLanguage() {
 
 // 更新語言URL
 function updateLanguageUrl(language) {
+    // 暫時禁用此函數以防止無限循環
+    console.log('updateLanguageUrl called with language:', language);
+    return;
+    
     // 檢查當前是否在首頁
     const currentPath = window.location.pathname;
     const isHomePage = currentPath === '/' || currentPath === '/index.html' || currentPath.includes('index.html');
@@ -619,9 +624,21 @@ const translations = {
 /**
  * 載入文章資料
  */
-function loadArticles() {
-    // 文章資料已經在全域變數中定義，這裡可以進行額外的初始化
-    console.log('文章資料已載入:', window.articles.length, '篇文章');
+async function loadArticles() {
+    // 如果文章管理器可用，使用新的系統載入文章
+    if (articleManager) {
+        try {
+            const articles = await articleManager.getArticles(currentLanguage);
+            window.articles = articles;
+            console.log('從文章管理器載入文章:', articles.length, '篇文章');
+        } catch (error) {
+            console.warn('文章管理器載入失敗，使用備用資料:', error);
+            // 保持原有的 window.articles 資料作為備用
+        }
+    } else {
+        // 文章資料已經在全域變數中定義，這裡可以進行額外的初始化
+        console.log('使用備用文章資料:', window.articles.length, '篇文章');
+    }
 }
 
 /**
@@ -644,7 +661,7 @@ function renderCategories() {
 /**
  * 初始化應用程式
  */
-function initApp() {
+async function initApp() {
     // 初始化 DOM 元素選取
     hamburger = document.querySelector('.hamburger');
     navMenu = document.querySelector('.nav-menu');
@@ -660,7 +677,23 @@ function initApp() {
     submitComment = document.getElementById('submitComment');
     commentsList = document.getElementById('commentsList');
     
-    loadArticles();
+    // 初始化文章管理器
+    if (typeof ArticleManager !== 'undefined' && window.articleManager) {
+        // 使用已存在的全域實例
+        articleManager = window.articleManager;
+        if (!articleManager.initialized) {
+            const success = await articleManager.initialize();
+            if (success) {
+                console.log('文章管理器初始化完成');
+            } else {
+                console.warn('文章管理器初始化失敗，將使用預設文章資料');
+            }
+        } else {
+            console.log('文章管理器已經初始化');
+        }
+    }
+    
+    await loadArticles();
     setupEventListeners();
     initializeLanguage(); // 初始化語言設置（包含URL參數檢測）
     initializeLanguagePreference(); // 初始化語言偏好
@@ -898,26 +931,61 @@ function renderArticles() {
     
     // 應用分類篩選
     if (currentFilter !== 'all') {
-        filteredArticles = filteredArticles.filter(article => 
-            article.category === currentFilter
-        );
+        filteredArticles = filteredArticles.filter(article => {
+            // 支援多分類篩選
+            if (article.categories && Array.isArray(article.categories)) {
+                return article.categories.includes(currentFilter);
+            }
+            // 向後兼容單分類
+            return article.category === currentFilter;
+        });
     }
     
     // 應用搜尋篩選
     if (currentSearchTerm) {
         filteredArticles = filteredArticles.filter(article => {
-            // 獲取當前語言的文章內容
-            const currentLangContent = article.multilingual && article.multilingual[currentLanguage] 
-                ? article.multilingual[currentLanguage] 
-                : article.multilingual.tw; // 預設使用繁體中文
+            // 獲取當前語言的文章內容，支援新舊格式
+            let title = '';
+            let excerpt = '';
+            let tags = [];
             
-            const title = currentLangContent.title || '';
-            const excerpt = currentLangContent.excerpt || '';
-            const tags = currentLangContent.tags || [];
+            if (article.multilingual && article.multilingual[currentLanguage]) {
+                // 新格式：多語言支援
+                const currentLangContent = article.multilingual[currentLanguage];
+                title = currentLangContent.title || '';
+                excerpt = currentLangContent.excerpt || '';
+                tags = currentLangContent.tags || article.tags || [];
+            } else if (article.multilingual && article.multilingual.tw) {
+                // 回退到繁體中文
+                const currentLangContent = article.multilingual.tw;
+                title = currentLangContent.title || '';
+                excerpt = currentLangContent.excerpt || '';
+                tags = currentLangContent.tags || article.tags || [];
+            } else {
+                // 舊格式：直接從文章物件取得
+                title = article.title || '';
+                excerpt = article.excerpt || '';
+                tags = article.tags || [];
+            }
+            
+            // 搜索分類名稱
+            let categoryMatch = false;
+            if (article.categories && Array.isArray(article.categories)) {
+                // 多分類搜索
+                categoryMatch = article.categories.some(cat => {
+                    const categoryName = getCategoryName(cat);
+                    return categoryName && categoryName.toLowerCase().includes(currentSearchTerm);
+                });
+            } else if (article.category) {
+                // 單分類搜索（向後兼容）
+                const categoryName = getCategoryName(article.category);
+                categoryMatch = categoryName && categoryName.toLowerCase().includes(currentSearchTerm);
+            }
             
             return title.toLowerCase().includes(currentSearchTerm) ||
                    excerpt.toLowerCase().includes(currentSearchTerm) ||
-                   tags.some(tag => tag.toLowerCase().includes(currentSearchTerm));
+                   tags.some(tag => tag.toLowerCase().includes(currentSearchTerm)) ||
+                   categoryMatch;
         });
     }
     
@@ -1090,14 +1158,30 @@ function createArticleCard(article) {
     const card = document.createElement('div');
     card.className = 'article-card';
     
-    // 獲取當前語言的文章內容
-    const currentLangContent = article.multilingual && article.multilingual[currentLanguage] 
-        ? article.multilingual[currentLanguage] 
-        : article.multilingual.tw; // 預設使用繁體中文
+    // 獲取當前語言的文章內容，支援新舊格式
+    let currentLangContent;
+    let title = '';
+    let excerpt = '';
+    let tags = [];
     
-    const title = currentLangContent.title || '';
-    const excerpt = currentLangContent.excerpt || '';
-    const tags = currentLangContent.tags || [];
+    if (article.multilingual && article.multilingual[currentLanguage]) {
+        // 新格式：多語言支援
+        currentLangContent = article.multilingual[currentLanguage];
+        title = currentLangContent.title || '';
+        excerpt = currentLangContent.excerpt || '';
+        tags = currentLangContent.tags || article.tags || [];
+    } else if (article.multilingual && article.multilingual.tw) {
+        // 回退到繁體中文
+        currentLangContent = article.multilingual.tw;
+        title = currentLangContent.title || '';
+        excerpt = currentLangContent.excerpt || '';
+        tags = currentLangContent.tags || article.tags || [];
+    } else {
+        // 舊格式：直接從文章物件取得
+        title = article.title || '';
+        excerpt = article.excerpt || '';
+        tags = article.tags || [];
+    }
     
     // 使用新格式URL，如果失敗則回退到舊格式
     const articleUrl = generateArticleUrl(article, currentLanguage);
@@ -1106,9 +1190,21 @@ function createArticleCard(article) {
     const readMoreText = translations[currentLanguage]['Read More'] || '閱讀更多';
     const shareText = translations[currentLanguage]['Share'] || '分享';
     
+    // 處理多分類顯示
+    let categoriesHtml = '';
+    if (article.categories && Array.isArray(article.categories)) {
+        // 新的多分類格式
+        categoriesHtml = article.categories.map(cat => 
+            `<span class="article-category-item ${cat}">${getCategoryName(cat)}</span>`
+        ).join('');
+    } else if (article.category) {
+        // 向後兼容單分類格式
+        categoriesHtml = `<span class="article-category-item ${article.category}">${getCategoryName(article.category)}</span>`;
+    }
+    
     card.innerHTML = `
         <div class="article-meta">
-            <span class="article-category ${article.category}">${getCategoryName(article.category)}</span>
+            <div class="article-categories-container">${categoriesHtml}</div>
             <time class="article-date">${formatDate(article.date)}</time>
         </div>
         <h2 class="article-title">
