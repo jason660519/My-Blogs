@@ -152,3 +152,6 @@ While most people read this AMD-OpenAI news as entertainment, tech guys like us 
 ---
 
 *Disclaimer: This is not financial advice. Always do your own research and never invest more than you can afford to lose.*
+
+---
+**Last Updated**: October 7, 2025

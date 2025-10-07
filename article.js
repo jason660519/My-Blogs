@@ -3,6 +3,12 @@
  * 實現獨立文章頁面、雙語切換和對照功能
  */
 
+// 確保 articleCurrentLanguage 變數存在
+if (typeof articleCurrentLanguage === 'undefined') {
+   // 全域變數
+ var articleCurrentLanguage = 'tw'; // 預設值
+}
+
 // 內建文章資料
 const defaultArticles = [
     {
@@ -110,11 +116,10 @@ const defaultArticles = [
 
 // 全域變數
 let currentArticle = null;
-let currentLanguage = 'tw';
 let currentViewMode = 'single';
 
 // 語言包
-const translations = {
+const articleTranslations = {
     tw: {
         // 界面文字
         'Investment Analysis × AI Insights': '投資分析 × AI洞察',
@@ -171,7 +176,7 @@ const translations = {
 
 // DOM 元素引用
 const loadingState = document.getElementById('loadingState');
-const articleContent = document.getElementById('articleContent');
+const articleContentElement = document.getElementById('articleContent');
 const errorState = document.getElementById('errorState');
 const articleTitle = document.getElementById('articleTitle');
 const articleCategory = document.getElementById('articleCategory');
@@ -229,9 +234,9 @@ function loadArticleFromURL() {
         return;
     }
     
-    // 設置語言
-    if (language && ['tw', 'en'].includes(language)) {
-        currentLanguage = language;
+    // 設定語言
+    if (language && ['tw', 'en', 'cn', 'jp'].includes(language)) {
+        articleCurrentLanguage = language;
         localStorage.setItem('preferredLanguage', language);
     }
     
@@ -239,24 +244,204 @@ function loadArticleFromURL() {
 }
 
 /**
+ * 從 Markdown 檔案載入文章內容
+ */
+async function loadArticleFromMarkdown(articleId, language = 'tw') {
+    try {
+        // 根據文章ID和語言代碼構建檔案路徑
+        const filePath = getMarkdownFilePath(articleId, language);
+        
+        const response = await fetch(filePath);
+        if (!response.ok) {
+            throw new Error(`Failed to load markdown file: ${response.status}`);
+        }
+        
+        const markdownContent = await response.text();
+        
+        // 解析 Markdown 內容（簡單的解析，將 # 轉換為 h1 等）
+        const htmlContent = parseMarkdownToHtml(markdownContent);
+        
+        // 從檔案名稱提取文章資訊
+        const articleInfo = extractArticleInfoFromFilename(filePath);
+        
+        return {
+            id: articleId,
+            category: articleInfo.category,
+            title: articleInfo.title,
+            content: htmlContent,
+            date: "2025-10-07", // 可以從 Markdown 檔案中解析
+            tags: [], // 可以從 Markdown 檔案中解析
+            language: language
+        };
+    } catch (error) {
+        console.error('Error loading markdown file:', error);
+        return null;
+    }
+}
+
+/**
+ * 根據文章ID和語言代碼獲取 Markdown 檔案路徑
+ */
+function getMarkdownFilePath(articleId, language) {
+    // 根據 URL_NAMING_RULES.md 的檔案命名規範
+    const fileMap = {
+        1: {
+            tw: 'content/tw/investment_fortune-god-beside-you_1_財神爺就在你身邊.md',
+            en: 'content/en/investment_fortune-god-beside-you_1_Fortune God Beside You.md',
+            cn: 'content/cn/investment_fortune-god-beside-you_1_财神爷就在你身边.md',
+            jp: 'content/jp/investment_fortune-god-beside-you_1_財神様があなたのそばに.md'
+        },
+        2: {
+            tw: 'content/tw/investment_amd-arbitrage-strategy_2_科技宅男的終極套利密碼.md',
+            en: 'content/en/investment_amd-arbitrage-strategy_2_Tech Guy Ultimate Arbitrage Code.md',
+            cn: 'content/cn/investment_amd-arbitrage-strategy_2_科技宅男的终极套利密码.md',
+            jp: 'content/jp/investment_amd-arbitrage-strategy_2_テクノロジーオタクの究極アービトラージコード.md'
+        },
+        3: {
+            tw: 'content/tw/tech_tech-stock-investment-strategy_3_科技股投資策略.md',
+            en: 'content/en/tech_tech-stock-investment-strategy_3_Tech Stock Investment Strategy.md',
+            cn: 'content/cn/tech_tech-stock-investment-strategy_3_科技股投资策略.md',
+            jp: 'content/jp/tech_tech-stock-investment-strategy_3_テック株投資戦略.md'
+        }
+    };
+    
+    return fileMap[articleId] && fileMap[articleId][language] 
+        ? fileMap[articleId][language] 
+        : null;
+}
+
+/**
+ * 簡單的 Markdown 到 HTML 轉換器
+ */
+function parseMarkdownToHtml(markdown) {
+    let html = markdown;
+    
+    // 轉換標題
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    
+    // 轉換粗體
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // 轉換斜體
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // 轉換連結
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    
+    // 轉換段落
+    html = html.replace(/\n\n/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    
+    // 清理空段落
+    html = html.replace(/<p><\/p>/g, '');
+    html = html.replace(/<p>\s*<h/g, '<h');
+    html = html.replace(/<\/h([1-6])>\s*<\/p>/g, '</h$1>');
+    
+    return html;
+}
+
+/**
+ * 從檔案名稱提取文章資訊
+ */
+function extractArticleInfoFromFilename(filePath) {
+    const filename = filePath.split('/').pop();
+    const parts = filename.replace('.md', '').split('_');
+    
+    return {
+        category: parts[0] || 'general',
+        slug: parts[1] || '',
+        id: parseInt(parts[2]) || 0,
+        title: parts[3] || 'Untitled'
+    };
+}
+
+/**
  * 載入文章資料
  */
-function loadArticle(articleId) {
-    // 優先從localStorage獲取文章資料，如果沒有則使用內建資料
-    const storedArticles = JSON.parse(localStorage.getItem('blogArticles')) || [];
-    const articles = storedArticles.length > 0 ? storedArticles : defaultArticles;
-    const article = articles.find(a => a.id === articleId);
+async function loadArticle(articleId) {
+    showLoading();
+    
+    try {
+        // 嘗試從 Markdown 檔案載入文章
+        const article = await loadArticleFromMarkdown(articleId, articleCurrentLanguage);
+        
+        if (article) {
+            currentArticle = article;
+            displayArticle(article);
+            
+            // 更新瀏覽器URL為新格式
+            updateBrowserUrl(article, articleCurrentLanguage);
+            
+            // 設置文章導航
+            setupArticleNavigation(articleId);
+        } else {
+            // 如果 Markdown 檔案載入失敗，回退到硬編碼內容
+            loadArticleFromFallback(articleId);
+        }
+    } catch (error) {
+        console.error('Error loading article:', error);
+        loadArticleFromFallback(articleId);
+    } finally {
+        hideLoading();
+    }
+}
+
+/**
+ * 回退到硬編碼文章內容
+ */
+function loadArticleFromFallback(articleId) {
+    // 從 script.js 獲取文章資料（使用新的多語言結構）
+    const article = window.articles ? window.articles.find(a => a.id === articleId) : null;
     
     if (!article) {
-        showError();
-        return;
+        // 如果沒有找到文章，嘗試從舊的資料結構載入
+        const storedArticles = JSON.parse(localStorage.getItem('blogArticles')) || [];
+        const fallbackArticles = storedArticles.length > 0 ? storedArticles : defaultArticles;
+        const fallbackArticle = fallbackArticles.find(a => a.id === articleId);
+        
+        if (!fallbackArticle) {
+            showError();
+            return;
+        }
+        
+        // 將舊格式轉換為新格式
+        const convertedArticle = {
+            ...fallbackArticle,
+            multilingual: {
+                tw: {
+                    title: fallbackArticle.title,
+                    excerpt: fallbackArticle.excerpt,
+                    content: fallbackArticle.content,
+                    tags: fallbackArticle.tags || []
+                },
+                en: generateEnglishContent(fallbackArticle),
+                cn: {
+                    title: fallbackArticle.title,
+                    excerpt: fallbackArticle.excerpt,
+                    content: fallbackArticle.content,
+                    tags: fallbackArticle.tags || []
+                },
+                jp: {
+                    title: fallbackArticle.title,
+                    excerpt: fallbackArticle.excerpt,
+                    content: fallbackArticle.content,
+                    tags: fallbackArticle.tags || []
+                }
+            }
+        };
+        
+        currentArticle = convertedArticle;
+        displayArticle(convertedArticle);
+    } else {
+        // 使用新的多語言結構
+        currentArticle = article;
+        displayArticle(article);
     }
     
     // 更新瀏覽器URL為新格式
-    updateBrowserUrl(article, currentLanguage);
-    
-    currentArticle = article;
-    displayArticle(article);
+    updateBrowserUrl(currentArticle, articleCurrentLanguage);
     
     // 設置文章導航
     setupArticleNavigation(articleId);
@@ -268,11 +453,16 @@ function loadArticle(articleId) {
 function displayArticle(article) {
     // 隱藏載入狀態，顯示文章內容
     loadingState.classList.add('hidden');
-    articleContent.classList.remove('hidden');
+    articleContentElement.classList.remove('hidden');
     
-    // 獲取英文內容
-    const englishContent = generateEnglishContent(article);
-    const currentTitle = currentLanguage === 'tw' ? article.title : englishContent.title;
+    // 獲取當前語言的內容
+    const currentLangContent = article.multilingual && article.multilingual[articleCurrentLanguage] 
+        ? article.multilingual[articleCurrentLanguage] 
+        : article.multilingual?.tw || article; // 預設使用繁體中文或原始格式
+    
+    const currentTitle = currentLangContent.title || article.title || '';
+    const currentContent = currentLangContent.content || article.content || '';
+    const currentTags = currentLangContent.tags || article.tags || [];
     
     // 設置頁面標題
     document.title = `${currentTitle} - Jason Blog`;
@@ -285,23 +475,55 @@ function displayArticle(article) {
     articleDate.textContent = formatDate(article.date);
     
     // 設置標籤
-    if (article.tags && article.tags.length > 0) {
-        articleTags.innerHTML = article.tags.map(tag => 
+    if (currentTags && currentTags.length > 0) {
+        articleTags.innerHTML = currentTags.map(tag => 
             `<span class="tag">${tag}</span>`
         ).join('');
     }
     
     // 設置文章內容
-    const zhContent = article.content || '';
-    const enContent = typeof englishContent === 'string' ? englishContent : englishContent.content;
+    const zhContent = article.multilingual?.tw?.content || article.content || '';
+    const enContent = article.multilingual?.en?.content || '';
+    const cnContent = article.multilingual?.cn?.content || zhContent;
+    const jpContent = article.multilingual?.jp?.content || zhContent;
     
+    // 根據當前語言顯示對應內容
     contentZh.innerHTML = zhContent;
     contentEn.innerHTML = enContent;
     bilingualContentZh.innerHTML = zhContent;
     bilingualContentEn.innerHTML = enContent;
     
-    // 更新檢視模式
-    updateViewMode();
+    // 如果有簡體中文和日文內容，也設置它們
+    if (document.getElementById('contentCn')) {
+        document.getElementById('contentCn').innerHTML = cnContent;
+    }
+    if (document.getElementById('contentJp')) {
+        document.getElementById('contentJp').innerHTML = jpContent;
+    }
+    
+    /**
+     * 更新檢視模式
+     */
+    function updateViewMode() {
+        if (currentViewMode === 'single') {
+            // 單語模式
+            singleLanguageContent.classList.remove('hidden');
+            bilingualContent.classList.add('hidden');
+            
+            // 顯示對應語言的內容
+            if (articleCurrentLanguage === 'tw') {
+                contentZh.classList.remove('hidden');
+                contentEn.classList.add('hidden');
+            } else {
+                contentZh.classList.add('hidden');
+                contentEn.classList.remove('hidden');
+            }
+        } else {
+            // 雙語對照模式
+            singleLanguageContent.classList.add('hidden');
+            bilingualContent.classList.remove('hidden');
+        }
+    }
 }
 
 /**
@@ -430,55 +652,37 @@ function generateEnglishContent(article) {
  * 處理語言切換
  */
 function handleLanguageSwitch(e) {
+    e.preventDefault();
     const targetLang = e.target.getAttribute('data-lang');
     
-    if (targetLang === currentLanguage) return;
+    if (targetLang === articleCurrentLanguage) return;
     
-    // 添加載入狀態
-    const button = e.target;
-    button.disabled = true;
-    button.style.opacity = '0.7';
+    // 顯示語言切換反饋
+    showLanguageSwitchFeedback(targetLang);
     
-    // 添加平滑過渡效果
-    const articleContent = document.querySelector('.article-content');
-    if (articleContent) {
-        articleContent.style.opacity = '0.8';
-        articleContent.style.transition = 'opacity 0.3s ease';
+    // 更新語言設定
+    articleCurrentLanguage = targetLang;
+    
+    // 儲存語言偏好
+    localStorage.setItem('preferredLanguage', articleCurrentLanguage);
+    
+    // 重新載入文章
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get('id');
+    
+    if (articleId) {
+        // 更新URL參數
+        urlParams.set('lang', targetLang);
+        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+        window.history.pushState({}, '', newUrl);
+        
+        // 重新載入文章
+        loadArticle(articleId);
     }
     
-    // 使用 setTimeout 來創建平滑的切換體驗
-    setTimeout(() => {
-        // 更新按鈕狀態
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        button.classList.add('active');
-        
-        // 更新當前語言
-        currentLanguage = targetLang;
-        
-        // 保存語言偏好到 localStorage
-        localStorage.setItem('preferredLanguage', currentLanguage);
-        
-        // 更新界面語言
-        updateLanguage();
-        
-        // 更新內容顯示
-        updateViewMode();
-        
-        // 恢復按鈕狀態
-        button.disabled = false;
-        button.style.opacity = '1';
-        
-        // 恢復內容透明度
-        if (articleContent) {
-            articleContent.style.opacity = '1';
-        }
-        
-        // 顯示切換成功提示
-        showLanguageSwitchFeedback(targetLang);
-        
-    }, 150);
+    // 更新語言相關的UI
+    updateLanguage();
+    updateLanguageButtons();
 }
 
 /**
@@ -512,7 +716,7 @@ function updateViewMode() {
         bilingualContent.classList.add('hidden');
         
         // 顯示對應語言的內容
-        if (currentLanguage === 'tw') {
+        if (articleCurrentLanguage === 'tw') {
             contentZh.classList.remove('hidden');
             contentEn.classList.add('hidden');
         } else {
@@ -620,7 +824,7 @@ function updateLanguage() {
  * 獲取分類名稱
  */
 function getCategoryName(category) {
-    return translations[currentLanguage][category] || category;
+    return articleTranslations[currentLanguage][category] || category;
 }
 
 /**
@@ -765,8 +969,8 @@ function showLoading() {
     if (loadingState) {
         loadingState.classList.remove('hidden');
     }
-    if (articleContent) {
-        articleContent.classList.add('hidden');
+    if (articleContentElement) {
+        articleContentElement.classList.add('hidden');
     }
     if (errorState) {
         errorState.classList.add('hidden');

@@ -705,3 +705,15 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-color);
 }
+
+/* 載入動畫樣式 */
+.loading-spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    font-size: 14px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

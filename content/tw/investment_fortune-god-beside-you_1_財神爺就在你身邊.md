@@ -56,4 +56,7 @@
 
 資料來源:  
 [https://www.youtube.com/watch?v=xPdAcoGyZ98](https://www.youtube.com/watch?v=xPdAcoGyZ98)  
-[https://www.youtube.com/watch?v=U0mYqcXd8Nc](https://www.youtube.com/watch?v=U0mYqcXd8Nc)  
+[https://www.youtube.com/watch?v=U0mYqcXd8Nc](https://www.youtube.com/watch?v=U0mYqcXd8Nc)
+
+---
+**最後更新日期**: 2025年10月7日
