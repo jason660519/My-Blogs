@@ -81,18 +81,26 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_error(404, "首頁檔案未找到")
                 return
         
-        # 處理查詢參數格式的文章頁面: /article.html?id=...&lang=...
+        # 處理查詢參數格式的文章頁面: /article.html?url=... 或 /article.html?id=...&lang=...
         elif path == '/article.html' and parsed_path.query:
             # 解析查詢參數
             query_params = urllib.parse.parse_qs(parsed_path.query)
-            article_id = query_params.get('id', [None])[0]
-            language = query_params.get('lang', ['tw'])[0]
             
-            if article_id and language in supported_languages:
-                # 保持原始路徑，讓瀏覽器正常載入 article.html
-                print(f"文章頁面訪問: {self.path} (ID: {article_id}, 語言: {language})")
+            # 檢查新格式: ?url=...
+            url_param = query_params.get('url', [None])[0]
+            if url_param:
+                # 解碼 URL 參數
+                decoded_url = urllib.parse.unquote(url_param)
+                print(f"文章頁面訪問 (新格式): {self.path} (URL: {decoded_url})")
             else:
-                print(f"無效的文章參數: {self.path}")
+                # 檢查傳統格式: ?id=...&lang=...
+                article_id = query_params.get('id', [None])[0]
+                language = query_params.get('lang', ['tw'])[0]
+                
+                if article_id and language in supported_languages:
+                    print(f"文章頁面訪問 (傳統格式): {self.path} (ID: {article_id}, 語言: {language})")
+                else:
+                    print(f"無效的文章參數: {self.path}")
         
         # 調用父類方法處理請求
         super().do_GET()
@@ -145,6 +153,13 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         
         return 'tw'  # 預設語言
     
+    def guess_type(self, path):
+        """覆寫 guess_type 方法以確保 HTML 檔案使用 UTF-8 編碼"""
+        mimetype = super().guess_type(path)
+        if mimetype == 'text/html':
+            return 'text/html; charset=utf-8'
+        return mimetype
+    
     def end_headers(self):
         """添加CORS標頭"""
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -154,30 +169,41 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 def run_server(port=8000):
     """啟動HTTP伺服器"""
-    handler = CustomHTTPRequestHandler
-    
-    with socketserver.TCPServer(("", port), handler) as httpd:
-        print(f"伺服器運行在 http://localhost:{port}")
-        print("支援的URL格式:")
-        print("  多語言首頁:")
-        print("    - http://localhost:{}/home/tw (正體中文)".format(port))
-        print("    - http://localhost:{}/home/en (英文)".format(port))
-        print("    - http://localhost:{}/home/cn (簡體中文)".format(port))
-        print("    - http://localhost:{}/home/jp (日文)".format(port))
-        print("  文章頁面:")
-        print("    新格式 (推薦):")
-        print("      - /articles/[language]/[category]/[title]/[id]")
-        print("      - 例如: /articles/tw/investment/fortune-god-beside-you/1")
-        print("    舊格式 (向下相容):")
-        print("      - /[category]/[title-slug]-[id]-[language]")
-        print("      - 例如: /investment/fortune-god-beside-you-1-tw")
-        print("  根目錄 (/) 會自動偵測瀏覽器語言")
-        print("\n按 Ctrl+C 停止伺服器")
+    try:
+        handler = CustomHTTPRequestHandler
+        server_address = ("127.0.0.1", port)
         
-        try:
+        with socketserver.TCPServer(server_address, handler) as httpd:
+            print(f"伺服器成功綁定到 {server_address[0]}:{server_address[1]}")
+            print(f"伺服器運行在 http://localhost:{port}")
+            print("支援的URL格式:")
+            print("  多語言首頁:")
+            print("    - http://localhost:{}/home/tw (正體中文)".format(port))
+            print("    - http://localhost:{}/home/en (英文)".format(port))
+            print("    - http://localhost:{}/home/cn (簡體中文)".format(port))
+            print("    - http://localhost:{}/home/jp (日文)".format(port))
+            print("  文章頁面:")
+            print("    新格式 (推薦):")
+            print("      - /articles/[language]/[category]/[title]/[id]")
+            print("      - 例如: /articles/tw/investment/fortune-god-beside-you/1")
+            print("    舊格式 (向下相容):")
+            print("      - /[category]/[title-slug]-[id]-[language]")
+            print("      - 例如: /investment/fortune-god-beside-you-1-tw")
+            print("  根目錄 (/) 會自動偵測瀏覽器語言")
+            print("\n按 Ctrl+C 停止伺服器")
+            print("伺服器正在等待連接...")
+            
             httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\n伺服器已停止")
+    except OSError as e:
+        print(f"伺服器啟動失敗: {e}")
+        if "Address already in use" in str(e):
+            print(f"端口 {port} 已被佔用，請嘗試其他端口")
+        elif "Permission denied" in str(e):
+            print("權限不足，請以管理員身份運行")
+    except KeyboardInterrupt:
+        print("\n伺服器已停止")
+    except Exception as e:
+        print(f"伺服器運行時發生錯誤: {e}")
 
 if __name__ == "__main__":
     # 切換到腳本所在目錄
