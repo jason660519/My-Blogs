@@ -1,3 +1,29 @@
+---
+title: "財神爺就在你身邊"
+slug: "fortune-god-beside-you"
+id: 1
+date: "2024-01-15"
+author: "Jason"
+categories: 
+  - investment
+  - ai
+  - tech
+tags:
+  - "投資策略"
+  - "AI產業"
+  - "AMD"
+  - "OpenAI"
+  - "科技股"
+  - "套利策略"
+description: "探討AMD與OpenAI戰略合作的投資機會與市場影響，分析雙方的商業算盤與投資策略"
+featured: true
+language: "tw"
+translations:
+  en: "fortune-god-beside-you"
+  cn: "财神爷就在你身边"
+  jp: "財神様があなたのそばに"
+---
+
 # 財神爺就在你身邊\~
 
 先下結論與心得: 未來兩年，AMD 的股價會飆升且流動性會枯竭，同樣的採購需求，到了外星人的腦袋。卻是如此的簡單粗暴，祂們在地球上又將憑空創造出了1000億與6000億美金，對雙方與全球投資人言，這也只是早晚，且是腳拉拉的簡單事而已。

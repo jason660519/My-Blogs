@@ -84,4 +84,4 @@ function initUrlRedirect() {
 }
 
 // 自動初始化
-// initUrlRedirect(); // 暫時禁用以測試
+initUrlRedirect();

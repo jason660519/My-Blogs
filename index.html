@@ -4,8 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jason Blog - 財經投資新聞</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Jason Blog 提供專業的財經投資分析、AI 技術洞察和科技股投資策略。深度解析市場趨勢，助您做出明智的投資決策。">
+    <meta name="keywords" content="投資分析,財經新聞,AI技術,科技股,投資策略,股票分析,市場趨勢">
+    <meta name="author" content="Jason Blog">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="zh-TW">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Jason Blog - 財經投資新聞">
+    <meta property="og:description" content="專業的財經投資分析、AI 技術洞察和科技股投資策略">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jasonblog.com">
+    <meta property="og:image" content="/images/og-image.svg">
+    <meta property="og:site_name" content="Jason Blog">
+    <meta property="og:locale" content="zh_TW">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Jason Blog - 財經投資新聞">
+    <meta name="twitter:description" content="專業的財經投資分析、AI 技術洞察和科技股投資策略">
+    <meta name="twitter:image" content="/images/twitter-card.svg">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://jasonblog.com/">
+    
+    <!-- Alternate Language Links -->
+    <link rel="alternate" hreflang="zh-TW" href="https://jasonblog.com/home/tw">
+    <link rel="alternate" hreflang="en" href="https://jasonblog.com/home/en">
+    <link rel="alternate" hreflang="zh-CN" href="https://jasonblog.com/home/cn">
+    <link rel="alternate" hreflang="ja" href="https://jasonblog.com/home/jp">
+    <link rel="alternate" hreflang="x-default" href="https://jasonblog.com/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    
     <link rel="stylesheet" href="/styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Jason Blog",
+        "description": "專業的財經投資分析、AI 技術洞察和科技股投資策略",
+        "url": "https://jasonblog.com",
+        "author": {
+            "@type": "Person",
+            "name": "Jason"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Jason Blog",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://jasonblog.com/images/logo.png"
+            }
+        },
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://jasonblog.com/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        },
+        "mainEntity": {
+            "@type": "Blog",
+            "name": "Jason Blog",
+            "description": "財經投資分析與 AI 技術洞察",
+            "blogPost": []
+        }
+    }
+    </script>
 </head>
 <body>
     <!-- 導航欄 -->
@@ -13,7 +90,7 @@
         <div class="nav-container">
             <div class="nav-brand">
                 <h1>Jason Blog</h1>
-                <p data-zh="投資分析 × AI洞察" data-en="Investment Analysis × AI Insights">投資分析 × AI洞察</p>
+                <p data-zh="投資分析 × AI洞察" data-en="Investment Analysis × AI Insights" data-cn="投资分析 × AI洞察" data-jp="投資分析 × AI洞察">投資分析 × AI洞察</p>
             </div>
             <div class="hamburger">
                 <span class="bar"></span>
@@ -21,10 +98,10 @@
                 <span class="bar"></span>
             </div>
             <ul class="nav-menu">
-                <li><a href="#home" data-zh="首頁" data-en="Home">首頁</a></li>
-                <li><a href="#articles" data-zh="文章" data-en="Articles">文章</a></li>
-                <li><a href="#about" data-zh="關於" data-en="About">關於</a></li>
-                <li><a href="admin.html" data-zh="管理" data-en="Admin">管理</a></li>
+                    <li><a href="#home" data-zh="首頁" data-en="Home" data-cn="首页" data-jp="ホーム">首頁</a></li>
+                    <li><a href="#articles" data-zh="文章" data-en="Articles" data-cn="文章" data-jp="記事">文章</a></li>
+                    <li><a href="#about" data-zh="關於" data-en="About" data-cn="关于" data-jp="について">關於</a></li>
+                    <li><a href="admin.html" data-zh="管理" data-en="Admin" data-cn="管理" data-jp="管理">管理</a></li>
                 <li class="language-switcher">
                     <button class="lang-btn active" data-lang="tw">繁中</button>
                     <button class="lang-btn" data-lang="en">English</button>
@@ -40,8 +117,8 @@
         <!-- 英雄區塊 -->
         <section class="hero" id="home">
             <div class="hero-content">
-                <h1 data-zh="最新文章" data-en="Latest Articles">最新文章</h1>
-                <p data-zh="探索投資世界的深度分析與AI產業的前沿洞察" data-en="Explore in-depth investment analysis and cutting-edge insights into the AI industry">探索投資世界的深度分析與AI產業的前沿洞察</p>
+                <h1 data-zh="最新文章" data-en="Latest Articles" data-cn="最新文章" data-jp="最新記事">最新文章</h1>
+                <p data-zh="探索投資世界的深度分析與AI產業的前沿洞察" data-en="Explore in-depth investment analysis and cutting-edge insights into the AI industry" data-cn="探索投资世界的深度分析与AI产业的前沿洞察" data-jp="投資世界の詳細分析とAI産業の最先端洞察を探求">探索投資世界的深度分析與AI產業的前沿洞察</p>
             </div>
         </section>
 
@@ -59,11 +136,11 @@
         <section class="articles" id="articles">
             <div class="container">
                 <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all" data-zh="全部" data-en="All">全部</button>
-                    <button class="filter-btn" data-filter="investment" data-zh="投資分析" data-en="Investment">投資分析</button>
-                    <button class="filter-btn" data-filter="tech" data-zh="科技股" data-en="Tech">科技股</button>
-                    <button class="filter-btn" data-filter="ai" data-zh="AI產業" data-en="AI">AI產業</button>
-                    <button class="filter-btn" data-filter="news" data-zh="財經新聞" data-en="News">財經新聞</button>
+                    <button class="filter-btn active" data-filter="all" data-zh="全部" data-en="All" data-cn="全部" data-jp="すべて">全部</button>
+                    <button class="filter-btn" data-filter="investment" data-zh="投資分析" data-en="Investment" data-cn="投资分析" data-jp="投資分析">投資分析</button>
+                    <button class="filter-btn" data-filter="tech" data-zh="科技股" data-en="Tech" data-cn="科技股" data-jp="テック株">科技股</button>
+                    <button class="filter-btn" data-filter="ai" data-zh="AI產業" data-en="AI" data-cn="AI产业" data-jp="AI産業">AI產業</button>
+                    <button class="filter-btn" data-filter="news" data-zh="財經新聞" data-en="News" data-cn="财经新闻" data-jp="金融ニュース">財經新聞</button>
                 </div>
                 <div class="articles-grid" id="articlesGrid">
                     <!-- 文章卡片將由JavaScript動態生成 -->
@@ -74,7 +151,7 @@
         <!-- 分類區塊 -->
         <section class="categories" id="categories">
             <div class="container">
-                <h2 data-zh="文章分類" data-en="Categories">文章分類</h2>
+                <h2 data-zh="文章分類" data-en="Categories" data-cn="文章分类" data-jp="記事カテゴリー">文章分類</h2>
                 <div class="categories-grid" id="categoriesGrid">
                     <!-- 分類卡片將由JavaScript動態生成 -->
                 </div>
@@ -84,10 +161,25 @@
         <!-- 關於區塊 -->
         <section class="about" id="about">
             <div class="container">
-                <h2 data-zh="關於 Jason Blog" data-en="About Jason Blog">關於 Jason Blog</h2>
+                <h2 data-zh="關於 Jason Blog" data-en="About Jason Blog" data-cn="关于 Jason Blog" data-jp="Jason Blogについて">關於 Jason Blog</h2>
                 <div class="about-content">
-                    <p data-zh="歡迎來到 Jason Blog，這裡是投資分析與AI產業洞察的專業平台。我們致力於提供深度的市場分析、前瞻性的投資策略，以及對人工智慧產業發展的獨到見解。" data-en="Welcome to Jason Blog, a professional platform for investment analysis and AI industry insights. We are committed to providing in-depth market analysis, forward-looking investment strategies, and unique insights into the development of the artificial intelligence industry.">歡迎來到 Jason Blog，這裡是投資分析與AI產業洞察的專業平台。我們致力於提供深度的市場分析、前瞻性的投資策略，以及對人工智慧產業發展的獨到見解。</p>
-                    <p data-zh="在這個快速變化的時代，掌握正確的資訊和分析能力至關重要。讓我們一起探索投資的奧秘，把握AI時代的機遇。" data-en="In this rapidly changing era, mastering accurate information and analytical capabilities is crucial. Let's explore the mysteries of investment together and seize the opportunities of the AI era.">在這個快速變化的時代，掌握正確的資訊和分析能力至關重要。讓我們一起探索投資的奧秘，把握AI時代的機遇。</p>
+                    <p data-zh="歡迎來到 Jason Blog，這裡是投資分析與AI產業洞察的專業平台。我們致力於提供深度的市場分析、前瞻性的投資策略，以及對人工智慧產業發展的獨到見解。" data-en="Welcome to Jason Blog, a professional platform for investment analysis and AI industry insights. We are committed to providing in-depth market analysis, forward-looking investment strategies, and unique insights into the development of the artificial intelligence industry." data-cn="欢迎来到 Jason Blog，这里是投资分析与AI产业洞察的专业平台。我们致力于提供深度的市场分析、前瞻性的投资策略，以及对人工智能产业发展的独到见解。" data-jp="Jason Blogへようこそ。ここは投資分析とAI産業洞察の専門プラットフォームです。私たちは詳細な市場分析、先見性のある投資戦略、そして人工知能産業発展に関する独自の洞察を提供することに専念しています。">歡迎來到 Jason Blog，這裡是投資分析與AI產業洞察的專業平台。我們致力於提供深度的市場分析、前瞻性的投資策略，以及對人工智慧產業發展的獨到見解。</p>
+                    <p data-zh="在這個快速變化的時代，掌握正確的資訊和分析能力至關重要。讓我們一起探索投資的奧秘，把握AI時代的機遇。" data-en="In this rapidly changing era, mastering accurate information and analytical capabilities is crucial. Let's explore the mysteries of investment together and seize the opportunities of the AI era." data-cn="在这个快速变化的时代，掌握正确的信息和分析能力至关重要。让我们一起探索投资的奥秘，把握AI时代的机遇。" data-jp="この急速に変化する時代において、正確な情報と分析能力を身につけることが極めて重要です。一緒に投資の奥秘を探求し、AI時代の機会を掴みましょう。">在這個快速變化的時代，掌握正確的資訊和分析能力至關重要。讓我們一起探索投資的奧秘，把握AI時代的機遇。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 管理區塊 -->
+        <section class="admin" id="admin">
+            <div class="container">
+                <h2 data-zh="管理面板" data-en="Admin Panel" data-cn="管理面板" data-jp="管理パネル">管理面板</h2>
+                <div class="admin-content">
+                    <p data-zh="管理網站內容、文章和設定。" data-en="Manage website content, articles and settings." data-cn="管理网站内容、文章和设定。" data-jp="ウェブサイトのコンテンツ、記事、設定を管理します。">管理網站內容、文章和設定。</p>
+                    <div class="admin-buttons">
+                        <button class="btn btn-primary" data-zh="文章管理" data-en="Article Management" data-cn="文章管理" data-jp="記事管理">文章管理</button>
+                        <button class="btn btn-secondary" data-zh="分類管理" data-en="Category Management" data-cn="分类管理" data-jp="カテゴリー管理">分類管理</button>
+                        <button class="btn btn-secondary" data-zh="系統設定" data-en="System Settings" data-cn="系统设定" data-jp="システム設定">系統設定</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -127,6 +219,60 @@
         </div>
     </footer>
 
-    <script src="/script.js"></script>
+    <script src="url-redirect.js"></script>
+    <script src="article-manager.js"></script>
+    <script src="script.js"></script>
+    
+    <script>
+        // 初始化應用程式
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM 載入完成，開始初始化應用程式');
+            if (typeof initApp === 'function') {
+                initApp().then(() => {
+                    console.log('應用程式初始化完成');
+                }).catch(error => {
+                    console.error('應用程式初始化失敗:', error);
+                });
+            } else {
+                console.error('initApp 函數未找到');
+            }
+        });
+    </script>
+    
+    <!-- Service Worker 註冊 -->
+    <script>
+        // 註冊 Service Worker 以提供緩存和離線功能
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service Worker 註冊成功:', registration.scope);
+                    
+                    // 監聽 Service Worker 更新
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('Service Worker 已更新，建議重新載入頁面');
+                                // 可以在這裡顯示更新通知
+                            }
+                        });
+                    });
+                    
+                    // 定期清理過期緩存
+                    setInterval(() => {
+                        if (registration.active) {
+                            registration.active.postMessage({ type: 'CLEAN_CACHE' });
+                        }
+                    }, 3600000); // 每小時清理一次
+                    
+                } catch (error) {
+                    console.error('Service Worker 註冊失敗:', error);
+                }
+            });
+        } else {
+            console.log('瀏覽器不支援 Service Worker');
+        }
+    </script>
 </body>
 </html>

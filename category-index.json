@@ -1,0 +1,205 @@
+{
+  "categories": {
+    "investment": {
+      "name": {
+        "tw": "投資理財",
+        "en": "Investment",
+        "cn": "投资理财",
+        "jp": "投資"
+      },
+      "description": {
+        "tw": "投資策略、市場分析、理財規劃相關文章",
+        "en": "Investment strategies, market analysis, and financial planning articles",
+        "cn": "投资策略、市场分析、理财规划相关文章",
+        "jp": "投資戦略、市場分析、資産運用に関する記事"
+      },
+      "color": "#2563eb",
+      "icon": "💰",
+      "articles": [
+        {
+          "id": 1,
+          "slug": "fortune-god-beside-you",
+          "title": {
+            "tw": "財神爺就在你身邊",
+            "en": "Fortune God is Beside You",
+            "cn": "财神爷就在你身边",
+            "jp": "財神様があなたのそばに"
+          },
+          "featured": true,
+          "date": "2024-01-15"
+        },
+        {
+          "id": 2,
+          "slug": "amd-arbitrage-strategy",
+          "title": {
+            "tw": "科技宅男的終極套利密碼",
+            "en": "Tech Guy's Ultimate Arbitrage Code",
+            "cn": "科技宅男的终极套利密码",
+            "jp": "テクノロジーオタクの究極アービトラージコード"
+          },
+          "featured": true,
+          "date": "2024-01-20"
+        },
+        {
+          "id": 3,
+          "slug": "tech-stock-investment-strategy",
+          "title": {
+            "tw": "科技股投資策略",
+            "en": "Tech Stock Investment Strategy",
+            "cn": "科技股投资策略",
+            "jp": "テクノロジー株投資戦略"
+          },
+          "featured": false,
+          "date": "2024-01-25"
+        }
+      ]
+    },
+    "tech": {
+      "name": {
+        "tw": "科技趨勢",
+        "en": "Technology",
+        "cn": "科技趋势",
+        "jp": "テクノロジー"
+      },
+      "description": {
+        "tw": "科技產業趨勢、新技術分析、數位轉型相關內容",
+        "en": "Technology industry trends, new tech analysis, and digital transformation content",
+        "cn": "科技产业趋势、新技术分析、数字化转型相关内容",
+        "jp": "テクノロジー業界のトレンド、新技術分析、デジタル変革に関するコンテンツ"
+      },
+      "color": "#059669",
+      "icon": "🚀",
+      "articles": [
+        {
+          "id": 2,
+          "slug": "amd-arbitrage-strategy",
+          "title": {
+            "tw": "科技宅男的終極套利密碼",
+            "en": "Tech Guy's Ultimate Arbitrage Code",
+            "cn": "科技宅男的终极套利密码",
+            "jp": "テクノロジーオタクの究極アービトラージコード"
+          },
+          "featured": true,
+          "date": "2024-01-20"
+        },
+        {
+          "id": 3,
+          "slug": "tech-stock-investment-strategy",
+          "title": {
+            "tw": "科技股投資策略",
+            "en": "Tech Stock Investment Strategy",
+            "cn": "科技股投资策略",
+            "jp": "テクノロジー株投資戦略"
+          },
+          "featured": false,
+          "date": "2024-01-25"
+        }
+      ]
+    },
+    "ai": {
+      "name": {
+        "tw": "人工智慧",
+        "en": "Artificial Intelligence",
+        "cn": "人工智能",
+        "jp": "人工知能"
+      },
+      "description": {
+        "tw": "AI技術發展、機器學習、深度學習相關討論",
+        "en": "AI technology development, machine learning, and deep learning discussions",
+        "cn": "AI技术发展、机器学习、深度学习相关讨论",
+        "jp": "AI技術開発、機械学習、ディープラーニングに関する議論"
+      },
+      "color": "#7c3aed",
+      "icon": "🤖",
+      "articles": [
+        {
+          "id": 1,
+          "slug": "fortune-god-beside-you",
+          "title": {
+            "tw": "財神爺就在你身邊",
+            "en": "Fortune God is Beside You",
+            "cn": "财神爷就在你身边",
+            "jp": "財神様があなたのそばに"
+          },
+          "featured": true,
+          "date": "2024-01-15"
+        },
+        {
+          "id": 2,
+          "slug": "amd-arbitrage-strategy",
+          "title": {
+            "tw": "科技宅男的終極套利密碼",
+            "en": "Tech Guy's Ultimate Arbitrage Code",
+            "cn": "科技宅男的终极套利密码",
+            "jp": "テクノロジーオタクの究極アービトラージコード"
+          },
+          "featured": true,
+          "date": "2024-01-20"
+        }
+      ]
+    }
+  },
+  "tags": {
+    "投資策略": {
+      "name": {
+        "tw": "投資策略",
+        "en": "Investment Strategy",
+        "cn": "投资策略",
+        "jp": "投資戦略"
+      },
+      "articles": [1, 2, 3]
+    },
+    "AI產業": {
+      "name": {
+        "tw": "AI產業",
+        "en": "AI Industry",
+        "cn": "AI产业",
+        "jp": "AI産業"
+      },
+      "articles": [1, 2]
+    },
+    "AMD": {
+      "name": {
+        "tw": "AMD",
+        "en": "AMD",
+        "cn": "AMD",
+        "jp": "AMD"
+      },
+      "articles": [1, 2]
+    },
+    "OpenAI": {
+      "name": {
+        "tw": "OpenAI",
+        "en": "OpenAI",
+        "cn": "OpenAI",
+        "jp": "OpenAI"
+      },
+      "articles": [1, 2]
+    },
+    "科技股": {
+      "name": {
+        "tw": "科技股",
+        "en": "Tech Stocks",
+        "cn": "科技股",
+        "jp": "テクノロジー株"
+      },
+      "articles": [1, 2, 3]
+    },
+    "套利策略": {
+      "name": {
+        "tw": "套利策略",
+        "en": "Arbitrage Strategy",
+        "cn": "套利策略",
+        "jp": "アービトラージ戦略"
+      },
+      "articles": [1, 2]
+    }
+  },
+  "metadata": {
+    "lastUpdated": "2024-01-25T10:00:00Z",
+    "version": "1.0.0",
+    "totalArticles": 3,
+    "totalCategories": 3,
+    "totalTags": 6
+  }
+}

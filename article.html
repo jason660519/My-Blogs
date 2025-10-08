@@ -4,8 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="pageTitle">Jason Blog - 文章詳細</title>
+    
+    <!-- SEO Meta Tags (動態更新) -->
+    <meta name="description" id="pageDescription" content="Jason Blog 專業財經投資分析文章">
+    <meta name="keywords" id="pageKeywords" content="投資分析,財經新聞,AI技術,科技股,投資策略">
+    <meta name="author" content="Jason Blog">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="zh-TW">
+    
+    <!-- Open Graph Meta Tags (動態更新) -->
+    <meta property="og:title" id="ogTitle" content="Jason Blog - 文章詳細">
+    <meta property="og:description" id="ogDescription" content="Jason Blog 專業財經投資分析文章">
+    <meta property="og:type" content="article">
+    <meta property="og:url" id="ogUrl" content="">
+    <meta property="og:image" id="ogImage" content="https://jasonblog.com/images/og-article.jpg">
+    <meta property="og:site_name" content="Jason Blog">
+    <meta property="og:locale" content="zh_TW">
+    <meta property="article:author" content="Jason">
+    <meta property="article:section" id="articleSection" content="">
+    <meta property="article:published_time" id="articlePublished" content="">
+    <meta property="article:modified_time" id="articleModified" content="">
+    <meta property="article:tag" id="articleTags" content="">
+    
+    <!-- Twitter Card Meta Tags (動態更新) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="twitterTitle" content="Jason Blog - 文章詳細">
+    <meta name="twitter:description" id="twitterDescription" content="Jason Blog 專業財經投資分析文章">
+    <meta name="twitter:image" id="twitterImage" content="https://jasonblog.com/images/twitter-article.jpg">
+    <meta name="twitter:creator" content="@JasonBlog">
+    
+    <!-- Canonical URL (動態更新) -->
+    <link rel="canonical" id="canonicalUrl" href="">
+    
+    <!-- Alternate Language Links (動態更新) -->
+    <link rel="alternate" hreflang="zh-TW" id="altTW" href="">
+    <link rel="alternate" hreflang="en" id="altEN" href="">
+    <link rel="alternate" hreflang="zh-CN" id="altCN" href="">
+    <link rel="alternate" hreflang="ja" id="altJP" href="">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Structured Data (JSON-LD) - 動態更新 -->
+    <script type="application/ld+json" id="structuredData">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Jason Blog - 文章詳細",
+        "description": "Jason Blog 專業財經投資分析文章",
+        "author": {
+            "@type": "Person",
+            "name": "Jason"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Jason Blog",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://jasonblog.com/images/logo.png"
+            }
+        },
+        "datePublished": "",
+        "dateModified": "",
+        "image": "https://jasonblog.com/images/og-article.jpg",
+        "url": "",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": ""
+        },
+        "articleSection": "",
+        "keywords": ""
+    }
+    </script>
     <style>
         /* 文章頁面專用樣式 */
         .article-page {
@@ -506,10 +582,10 @@
                 <span class="tagline" data-zh="投資分析 × AI洞察" data-en="Investment Analysis × AI Insights">投資分析 × AI洞察</span>
             </div>
             <div class="nav-links">
-                <a href="index.html" data-zh="首頁" data-en="Home">首頁</a>
-                <a href="index.html#articles" data-zh="文章" data-en="Articles">文章</a>
-                <a href="index.html#about" data-zh="關於" data-en="About">關於</a>
-                <a href="admin.html" data-zh="管理" data-en="Admin">管理</a>
+                <a href="index.html" data-zh="首頁" data-en="Home" data-cn="首页" data-jp="ホーム">首頁</a>
+                <a href="index.html#articles" data-zh="文章" data-en="Articles" data-cn="文章" data-jp="記事">文章</a>
+                <a href="index.html#about" data-zh="關於" data-en="About" data-cn="关于" data-jp="について">關於</a>
+                <a href="admin.html" data-zh="管理" data-en="Admin" data-cn="管理" data-jp="管理">管理</a>
             </div>
         </div>
     </nav>
@@ -519,7 +595,7 @@
         <div class="article-page">
             <!-- 載入中狀態 -->
             <div id="loadingState" class="loading">
-                <span data-zh="載入文章中..." data-en="Loading article...">載入文章中...</span>
+                <span data-zh="載入文章中..." data-en="Loading article..." data-cn="加载文章中..." data-jp="記事を読み込み中...">載入文章中...</span>
             </div>
 
             <!-- 文章內容 -->
@@ -537,13 +613,15 @@
                 <!-- 語言控制區域 -->
                 <div class="language-controls">
                     <div class="language-switcher">
-                        <button class="lang-btn active" data-lang="tw" data-zh="中文" data-en="Chinese">中文</button>
-                        <button class="lang-btn" data-lang="en" data-zh="English" data-en="English">English</button>
+                        <button class="lang-btn active" data-lang="tw" data-zh="繁體中文" data-en="Traditional Chinese" data-cn="繁体中文" data-jp="繁体字中国語">繁體中文</button>
+                        <button class="lang-btn" data-lang="en" data-zh="English" data-en="English" data-cn="English" data-jp="English">English</button>
+                        <button class="lang-btn" data-lang="cn" data-zh="簡體中文" data-en="Simplified Chinese" data-cn="简体中文" data-jp="簡体字中国語">簡體中文</button>
+                        <button class="lang-btn" data-lang="jp" data-zh="日本語" data-en="Japanese" data-cn="日语" data-jp="日本語">日本語</button>
                     </div>
                     <div class="view-mode-controls">
-                        <span data-zh="檢視模式：" data-en="View Mode:">檢視模式：</span>
-                        <button class="view-mode-btn active" data-mode="single" data-zh="單語" data-en="Single">單語</button>
-                        <button class="view-mode-btn" data-mode="bilingual" data-zh="對照" data-en="Compare">對照</button>
+                        <span data-zh="檢視模式：" data-en="View Mode:" data-cn="查看模式：" data-jp="表示モード：">檢視模式：</span>
+                        <button class="view-mode-btn active" data-mode="single" data-zh="單語" data-en="Single" data-cn="单语" data-jp="単一言語">單語</button>
+                        <button class="view-mode-btn" data-mode="bilingual" data-zh="對照" data-en="Compare" data-cn="对照" data-jp="対照">對照</button>
                     </div>
                 </div>
 
@@ -560,11 +638,11 @@
                     <!-- 雙語對照模式 -->
                     <div id="bilingualContent" class="bilingual-mode hidden">
                         <div class="content-column">
-                            <h4 data-zh="中文版本" data-en="Chinese Version">中文版本</h4>
+                            <h4 data-zh="中文版本" data-en="Chinese Version" data-cn="中文版本" data-jp="中国語版">中文版本</h4>
                             <div id="bilingualContentZh" class="article-content"></div>
                         </div>
                         <div class="content-column">
-                            <h4 data-zh="英文版本" data-en="English Version">英文版本</h4>
+                            <h4 data-zh="英文版本" data-en="English Version" data-cn="英文版本" data-jp="英語版">英文版本</h4>
                             <div id="bilingualContentEn" class="article-content"></div>
                         </div>
                     </div>
@@ -575,7 +653,7 @@
                     <div class="nav-section">
                         <a href="index.html" class="nav-btn">
                             <i class="fas fa-arrow-left"></i>
-                            <span data-zh="返回文章列表" data-en="Back to Articles">返回文章列表</span>
+                            <span data-zh="返回文章列表" data-en="Back to Articles" data-cn="返回文章列表" data-jp="記事リストに戻る">返回文章列表</span>
                         </a>
                     </div>
                     
@@ -584,14 +662,14 @@
                         <a id="prevArticleBtn" href="#" class="nav-btn article-nav-btn hidden">
                             <i class="fas fa-chevron-left"></i>
                             <div class="nav-article-info">
-                                <span class="nav-label" data-zh="上一篇" data-en="Previous">上一篇</span>
+                                <span class="nav-label" data-zh="上一篇" data-en="Previous" data-cn="上一篇" data-jp="前の記事">上一篇</span>
                                 <span id="prevArticleTitle" class="nav-article-title"></span>
                             </div>
                         </a>
                         
                         <a id="nextArticleBtn" href="#" class="nav-btn article-nav-btn hidden">
                             <div class="nav-article-info">
-                                <span class="nav-label" data-zh="下一篇" data-en="Next">下一篇</span>
+                                <span class="nav-label" data-zh="下一篇" data-en="Next" data-cn="下一篇" data-jp="次の記事">下一篇</span>
                                 <span id="nextArticleTitle" class="nav-article-title"></span>
                             </div>
                             <i class="fas fa-chevron-right"></i>
@@ -601,7 +679,7 @@
                     <div class="nav-actions">
                         <button id="shareBtn" class="nav-btn">
                             <i class="fas fa-share"></i>
-                            <span data-zh="分享文章" data-en="Share Article">分享文章</span>
+                            <span data-zh="分享文章" data-en="Share Article" data-cn="分享文章" data-jp="記事を共有">分享文章</span>
                         </button>
                     </div>
                 </nav>
@@ -611,11 +689,11 @@
             <div id="errorState" class="hidden">
                 <div style="text-align: center; padding: 3rem;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74c3c; margin-bottom: 1rem;"></i>
-                    <h2 data-zh="文章載入失敗" data-en="Failed to Load Article">文章載入失敗</h2>
-                    <p data-zh="找不到指定的文章，請檢查網址是否正確。" data-en="Article not found. Please check if the URL is correct.">找不到指定的文章，請檢查網址是否正確。</p>
+                    <h2 data-zh="文章載入失敗" data-en="Failed to Load Article" data-cn="文章加载失败" data-jp="記事の読み込みに失敗しました">文章載入失敗</h2>
+                    <p data-zh="找不到指定的文章，請檢查網址是否正確。" data-en="Article not found. Please check if the URL is correct." data-cn="找不到指定的文章，请检查网址是否正确。" data-jp="指定された記事が見つかりません。URLが正しいかご確認ください。">找不到指定的文章，請檢查網址是否正確。</p>
                     <a href="index.html" class="nav-btn" style="margin-top: 1rem;">
                         <i class="fas fa-home"></i>
-                        <span data-zh="返回首頁" data-en="Back to Home">返回首頁</span>
+                        <span data-zh="返回首頁" data-en="Back to Home" data-cn="返回首页" data-jp="ホームに戻る">返回首頁</span>
                     </a>
                 </div>
             </div>
@@ -623,9 +701,37 @@
     </main>
 
     <!-- 引入主要的JavaScript文件（包含文章資料） -->
+    <script src="url-redirect.js"></script>
+    <script src="article-manager.js"></script>
     <script src="/script.js"></script>
     <!-- 引入文章頁面專用JavaScript -->
     <script src="/article.js"></script>
+    
+    <!-- Service Worker 註冊 -->
+    <script>
+        // 註冊 Service Worker 以提供緩存和離線功能
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service Worker 註冊成功:', registration.scope);
+                    
+                    // 監聽 Service Worker 更新
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('Service Worker 已更新，建議重新載入頁面');
+                            }
+                        });
+                    });
+                    
+                } catch (error) {
+                    console.error('Service Worker 註冊失敗:', error);
+                }
+            });
+        }
+    </script>
     
     <!-- 添加動畫樣式 -->
     <style>

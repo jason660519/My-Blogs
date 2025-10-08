@@ -1,6 +1,7 @@
 /**
  * Jason Blog 文章頁面 JavaScript
  * 實現獨立文章頁面、雙語切換和對照功能
+ * 支援多分類系統
  */
 
 // 確保 articleCurrentLanguage 變數存在
@@ -8,6 +9,83 @@ if (typeof articleCurrentLanguage === 'undefined') {
    // 全域變數
  var articleCurrentLanguage = 'tw'; // 預設值
 }
+
+// 緩存機制
+const cache = {
+    // 分類索引快取
+    categoryIndex: null,
+    
+    // 文章內容快取
+    articles: new Map(),
+    
+    // Markdown 內容快取
+    markdownContent: new Map(),
+    
+    // 快取過期時間（毫秒）
+    CACHE_EXPIRY: 5 * 60 * 1000, // 5分鐘
+    
+    // 設置快取
+    set: function(key, value, type = 'articles') {
+        const cacheEntry = {
+            data: value,
+            timestamp: Date.now()
+        };
+        
+        if (type === 'articles') {
+            this.articles.set(key, cacheEntry);
+        } else if (type === 'markdown') {
+            this.markdownContent.set(key, cacheEntry);
+        }
+    },
+    
+    // 獲取快取
+    get: function(key, type = 'articles') {
+        let cacheMap;
+        if (type === 'articles') {
+            cacheMap = this.articles;
+        } else if (type === 'markdown') {
+            cacheMap = this.markdownContent;
+        } else {
+            return null;
+        }
+        
+        const cacheEntry = cacheMap.get(key);
+        if (!cacheEntry) return null;
+        
+        // 檢查是否過期
+        if (Date.now() - cacheEntry.timestamp > this.CACHE_EXPIRY) {
+            cacheMap.delete(key);
+            return null;
+        }
+        
+        return cacheEntry.data;
+    },
+    
+    // 清除快取
+    clear: function(type = 'all') {
+        if (type === 'all' || type === 'articles') {
+            this.articles.clear();
+        }
+        if (type === 'all' || type === 'markdown') {
+            this.markdownContent.clear();
+        }
+        if (type === 'all' || type === 'categoryIndex') {
+            this.categoryIndex = null;
+        }
+    },
+    
+    // 獲取快取統計
+    getStats: function() {
+        return {
+            articlesCount: this.articles.size,
+            markdownCount: this.markdownContent.size,
+            hasCategoryIndex: !!this.categoryIndex
+        };
+    }
+};
+
+// 分類索引快取（向後兼容）
+let categoryIndex = null;
 
 // 內建文章資料
 const defaultArticles = [
@@ -171,6 +249,58 @@ const articleTranslations = {
         'tech': 'Technology Stocks',
         'ai': 'AI Industry',
         'news': 'Financial News'
+    },
+    cn: {
+        // 界面文字
+        'Investment Analysis × AI Insights': '投资分析 × AI洞察',
+        'Home': '首页',
+        'Articles': '文章',
+        'About': '关于',
+        'Admin': '管理',
+        'Loading article...': '加载文章中...',
+        'Chinese': '中文',
+        'English': 'English',
+        'View Mode:': '查看模式：',
+        'Single': '单语',
+        'Compare': '对照',
+        'Chinese Version': '中文版本',
+        'English Version': '英文版本',
+        'Back to Articles': '返回文章列表',
+        'Share Article': '分享文章',
+        'Failed to Load Article': '文章加载失败',
+        'Article not found. Please check if the URL is correct.': '找不到指定的文章，请检查网址是否正确。',
+        'Back to Home': '返回首页',
+        // 分類名稱
+        'investment': '投资分析',
+        'tech': '科技股',
+        'ai': 'AI产业',
+        'news': '财经新闻'
+    },
+    jp: {
+        // 界面文字
+        'Investment Analysis × AI Insights': '投資分析 × AI洞察',
+        'Home': 'ホーム',
+        'Articles': '記事',
+        'About': 'について',
+        'Admin': '管理',
+        'Loading article...': '記事を読み込み中...',
+        'Chinese': '中国語',
+        'English': 'English',
+        'View Mode:': '表示モード：',
+        'Single': '単一言語',
+        'Compare': '比較',
+        'Chinese Version': '中国語版',
+        'English Version': '英語版',
+        'Back to Articles': '記事一覧に戻る',
+        'Share Article': '記事を共有',
+        'Failed to Load Article': '記事の読み込みに失敗',
+        'Article not found. Please check if the URL is correct.': '指定された記事が見つかりません。URLが正しいかご確認ください。',
+        'Back to Home': 'ホームに戻る',
+        // 分類名稱
+        'investment': '投資分析',
+        'tech': 'テクノロジー株',
+        'ai': 'AI産業',
+        'news': '金融ニュース'
     }
 };
 
@@ -196,11 +326,38 @@ const nextArticleTitle = document.getElementById('nextArticleTitle');
 /**
  * 初始化文章頁面
  */
-function initArticlePage() {
+async function initArticlePage() {
     setupEventListeners();
     initializeLanguagePreference(); // 初始化語言偏好
+    await loadCategoryIndex(); // 載入分類索引
     loadArticleFromURL();
     updateLanguage();
+}
+
+/**
+ * 載入分類索引
+ */
+async function loadCategoryIndex() {
+    try {
+        // 檢查緩存
+        if (cache.categoryIndex) {
+            console.log('從緩存載入分類索引');
+            categoryIndex = cache.categoryIndex;
+            return;
+        }
+        
+        console.log('從網路載入分類索引');
+        const response = await fetch('/category-index.json');
+        if (response.ok) {
+            categoryIndex = await response.json();
+            cache.categoryIndex = categoryIndex; // 緩存分類索引
+            console.log('分類索引載入成功並已緩存:', categoryIndex);
+        } else {
+            console.warn('無法載入分類索引，使用預設設定');
+        }
+    } catch (error) {
+        console.warn('載入分類索引時發生錯誤:', error);
+    }
 }
 
 /**
@@ -286,34 +443,75 @@ function loadArticleFromURL() {
  */
 async function loadArticleFromMarkdown(articleId, language = 'tw') {
     try {
+        // 創建緩存鍵
+        const cacheKey = `${articleId}_${language}`;
+        
+        // 檢查緩存
+        const cachedArticle = cache.get(cacheKey, 'articles');
+        if (cachedArticle) {
+            console.log(`從緩存載入文章: ${cacheKey}`);
+            return cachedArticle;
+        }
+        
         // 根據文章ID和語言代碼構建檔案路徑
         const filePath = getMarkdownFilePath(articleId, language);
         
         // 確保使用絕對路徑，從網站根目錄開始
         const absolutePath = filePath.startsWith('/') ? filePath : '/' + filePath;
         
-        const response = await fetch(absolutePath);
-        if (!response.ok) {
-            throw new Error(`Failed to load markdown file: ${response.status}`);
+        // 檢查 Markdown 內容緩存
+        const markdownCacheKey = absolutePath;
+        let markdownContent = cache.get(markdownCacheKey, 'markdown');
+        
+        if (!markdownContent) {
+            console.log(`從網路載入 Markdown: ${absolutePath}`);
+            // 對檔案路徑進行 URL 編碼以處理中文字符
+            const encodedPath = encodeURI(absolutePath);
+            const response = await fetch(encodedPath);
+            if (!response.ok) {
+                throw new Error(`Failed to load markdown file: ${response.status}`);
+            }
+            
+            markdownContent = await response.text();
+            
+            // 緩存 Markdown 內容
+            cache.set(markdownCacheKey, markdownContent, 'markdown');
+        } else {
+            console.log(`從緩存載入 Markdown: ${absolutePath}`);
         }
         
-        const markdownContent = await response.text();
+        // 解析YAML Front Matter
+        const parsed = parseYamlFrontMatter(markdownContent);
+        const metadata = parsed.metadata;
+        const content = parsed.content;
         
         // 解析 Markdown 內容（簡單的解析，將 # 轉換為 h1 等）
-        const htmlContent = parseMarkdownToHtml(markdownContent);
+        const htmlContent = parseMarkdownToHtml(content);
         
-        // 從檔案名稱提取文章資訊
+        // 從檔案名稱提取文章資訊作為後備
         const articleInfo = extractArticleInfoFromFilename(filePath);
         
-        return {
-            id: articleId,
-            category: articleInfo.category,
-            title: articleInfo.title,
+        const article = {
+            id: metadata.id || articleId,
+            slug: metadata.slug || articleInfo.slug,
+            title: metadata.title || articleInfo.title,
+            categories: metadata.categories || [articleInfo.category], // 支援多分類
+            category: metadata.categories ? metadata.categories[0] : articleInfo.category, // 向後兼容
+            tags: metadata.tags || [],
+            description: metadata.description || '',
+            author: metadata.author || '',
+            date: metadata.date || "2025-10-07",
+            featured: metadata.featured || false,
             content: htmlContent,
-            date: "2025-10-07", // 可以從 Markdown 檔案中解析
-            tags: [], // 可以從 Markdown 檔案中解析
-            language: language
+            language: metadata.language || language,
+            translations: metadata.translations || {}
         };
+        
+        // 緩存解析後的文章數據
+        cache.set(cacheKey, article, 'articles');
+        console.log(`文章已緩存: ${cacheKey}`);
+        
+        return article;
     } catch (error) {
         console.error('Error loading markdown file:', error);
         return null;
@@ -362,6 +560,73 @@ function getMarkdownFilePath(articleId, language) {
     return fileMap[articleId][language] 
         ? fileMap[articleId][language] 
         : null;
+}
+
+/**
+ * 解析YAML Front Matter
+ */
+function parseYamlFrontMatter(content) {
+    const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+    const match = content.match(frontMatterRegex);
+    
+    if (!match) {
+        return {
+            metadata: {},
+            content: content
+        };
+    }
+    
+    const yamlContent = match[1];
+    const markdownContent = match[2];
+    
+    // 簡單的YAML解析器（僅支援基本格式）
+    const metadata = {};
+    const lines = yamlContent.split('\n');
+    let currentKey = null;
+    let currentArray = null;
+    
+    for (let line of lines) {
+        line = line.trim();
+        if (!line || line.startsWith('#')) continue;
+        
+        if (line.includes(':') && !line.startsWith('-')) {
+            // 處理鍵值對
+            const [key, ...valueParts] = line.split(':');
+            const value = valueParts.join(':').trim();
+            currentKey = key.trim();
+            
+            if (value === '') {
+                // 可能是陣列的開始
+                currentArray = [];
+                metadata[currentKey] = currentArray;
+            } else if (value.startsWith('"') && value.endsWith('"')) {
+                // 字串值
+                metadata[currentKey] = value.slice(1, -1);
+            } else if (value === 'true' || value === 'false') {
+                // 布林值
+                metadata[currentKey] = value === 'true';
+            } else if (!isNaN(value)) {
+                // 數字值
+                metadata[currentKey] = parseFloat(value);
+            } else {
+                // 普通字串
+                metadata[currentKey] = value;
+            }
+        } else if (line.startsWith('-') && currentArray) {
+            // 陣列項目
+            const item = line.substring(1).trim();
+            if (item.startsWith('"') && item.endsWith('"')) {
+                currentArray.push(item.slice(1, -1));
+            } else {
+                currentArray.push(item);
+            }
+        }
+    }
+    
+    return {
+        metadata: metadata,
+        content: markdownContent
+    };
 }
 
 /**
@@ -526,8 +791,20 @@ function displayArticle(article) {
     
     // 設置文章基本資訊
     articleTitle.textContent = currentTitle;
-    articleCategory.textContent = getCategoryName(article.category);
-    articleCategory.className = `article-category ${article.category}`;
+    
+    // 處理多分類顯示
+    if (article.categories && Array.isArray(article.categories)) {
+        // 新的多分類格式
+        articleCategory.innerHTML = article.categories.map(category => 
+            `<span class="article-category-item ${category}">${getCategoryName(category)}</span>`
+        ).join('');
+        articleCategory.className = 'article-categories-container';
+    } else if (article.category) {
+        // 舊的單分類格式（向下相容）
+        articleCategory.textContent = getCategoryName(article.category);
+        articleCategory.className = `article-category ${article.category}`;
+    }
+    
     articleDate.textContent = formatDate(article.date);
     
     // 設置標籤
@@ -594,6 +871,9 @@ function displayArticle(article) {
     
     // 更新檢視模式
     updateViewMode();
+    
+    // 更新 SEO meta 標籤
+    updateSEOMetaTags(article, currentLangContent);
 }
 
 /**
@@ -895,17 +1175,37 @@ function initializeLanguagePreference() {
  */
 function updateLanguage() {
     // 更新HTML lang屬性
-    document.documentElement.lang = currentLanguage === 'tw' ? 'zh-TW' : 'en';
+    const langMap = {
+        'tw': 'zh-TW',
+        'en': 'en',
+        'cn': 'zh-CN',
+        'jp': 'ja'
+    };
+    document.documentElement.lang = langMap[currentLanguage] || 'zh-TW';
     
-    // 更新所有帶有data-zh和data-en屬性的元素
-    document.querySelectorAll('[data-zh][data-en]').forEach(element => {
-        const zhText = element.getAttribute('data-zh');
-        const enText = element.getAttribute('data-en');
+    // 更新所有帶有語言屬性的元素
+    document.querySelectorAll('[data-zh][data-en], [data-zh][data-en][data-cn], [data-zh][data-en][data-cn][data-jp]').forEach(element => {
+        let text = '';
         
-        if (currentLanguage === 'tw') {
-            element.textContent = zhText;
-        } else {
-            element.textContent = enText;
+        switch (currentLanguage) {
+            case 'tw':
+                text = element.getAttribute('data-zh');
+                break;
+            case 'en':
+                text = element.getAttribute('data-en');
+                break;
+            case 'cn':
+                text = element.getAttribute('data-cn') || element.getAttribute('data-zh');
+                break;
+            case 'jp':
+                text = element.getAttribute('data-jp') || element.getAttribute('data-zh');
+                break;
+            default:
+                text = element.getAttribute('data-zh');
+        }
+        
+        if (text) {
+            element.textContent = text;
         }
     });
     
@@ -919,7 +1219,16 @@ function updateLanguage() {
  * 獲取分類名稱
  */
 function getCategoryName(category) {
-    return articleTranslations[currentLanguage][category] || category;
+    // 優先從分類索引中獲取
+    if (categoryIndex && categoryIndex.categories && categoryIndex.categories[category]) {
+        const categoryData = categoryIndex.categories[category];
+        if (categoryData.name && categoryData.name[articleCurrentLanguage]) {
+            return categoryData.name[articleCurrentLanguage];
+        }
+    }
+    
+    // 回退到原有的翻譯系統
+    return articleTranslations[articleCurrentLanguage][category] || category;
 }
 
 /**
@@ -1298,34 +1607,71 @@ function generateLegacyArticleUrl(article, language = 'tw') {
  * @returns {Object|null} - 解析結果 {articleId, language, category, titleSlug}
  */
 function parseArticleUrl(url) {
-    // 移除域名和協議，只保留路徑
-    const path = url.replace(/^https?:\/\/[^\/]+/, '');
+    // 移除查詢參數和錨點
+    const cleanUrl = url.split('?')[0].split('#')[0];
     
-    // 新格式: /articles/[language]/[category]/[title-slug]/[id]
-    const newFormatMatch = path.match(/^\/articles\/([a-z]{2,3})\/([^\/]+)\/([^\/]+)\/(\d+)$/);
+    // 新格式: /articles/[language]/[category]/[english-title-slug]/[id]
+    const newFormatMatch = cleanUrl.match(/^\/articles\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(\d+)\/?$/);
     if (newFormatMatch) {
-        const [, language, category, titleSlug, articleId] = newFormatMatch;
         return {
-            articleId: parseInt(articleId),
-            language: language,
-            category: category,
-            titleSlug: titleSlug
+            articleId: parseInt(newFormatMatch[4]),
+            language: newFormatMatch[1],
+            category: newFormatMatch[2],
+            titleSlug: newFormatMatch[3],
+            format: 'new'
         };
     }
     
     // 舊格式: /[category]/[title-slug]-[id]-[language]
-    const legacyFormatMatch = path.match(/^\/([^\/]+)\/(.+)-(\d+)-([a-z]{2,3})$/);
+    const legacyFormatMatch = cleanUrl.match(/^\/([^\/]+)\/([^-]+(?:-[^-]+)*)-(\d+)-([^\/]+)\/?$/);
     if (legacyFormatMatch) {
-        const [, category, titleSlug, articleId, language] = legacyFormatMatch;
         return {
-            articleId: parseInt(articleId),
-            language: language,
-            category: category,
-            titleSlug: titleSlug
+            articleId: parseInt(legacyFormatMatch[3]),
+            language: legacyFormatMatch[4],
+            category: legacyFormatMatch[1],
+            titleSlug: legacyFormatMatch[2],
+            format: 'legacy'
         };
     }
     
     return null;
+}
+
+/**
+ * 生成新格式的文章 URL
+ * @param {Object} article - 文章對象
+ * @param {string} language - 語言代碼
+ * @returns {string} - 新格式的 URL
+ */
+function generateNewArticleUrl(article, language = 'tw') {
+    const category = article.categories ? article.categories[0] : article.category;
+    const titleSlug = article.slug || generateUrlSlug(article.title);
+    return `/articles/${language}/${category}/${titleSlug}/${article.id}`;
+}
+
+/**
+ * 生成舊格式的文章 URL（向後兼容）
+ * @param {Object} article - 文章對象
+ * @param {string} language - 語言代碼
+ * @returns {string} - 舊格式的 URL
+ */
+function generateLegacyArticleUrl(article, language = 'tw') {
+    const category = article.categories ? article.categories[0] : article.category;
+    const titleSlug = article.slug || generateUrlSlug(article.title);
+    return `/${category}/${titleSlug}-${article.id}-${language}`;
+}
+
+/**
+ * 根據配置生成適當的文章 URL
+ * @param {Object} article - 文章對象
+ * @param {string} language - 語言代碼
+ * @param {boolean} useNewFormat - 是否使用新格式
+ * @returns {string} - 文章 URL
+ */
+function generateArticleUrl(article, language = 'tw', useNewFormat = true) {
+    return useNewFormat ? 
+        generateNewArticleUrl(article, language) : 
+        generateLegacyArticleUrl(article, language);
 }
 
 /**
@@ -1397,4 +1743,201 @@ function updateBrowserUrl(article, language) {
     
     // 更新頁面標題
     document.title = `${article.title} - Jason Blog`;
+}
+
+/**
+ * 緩存管理功能
+ */
+window.cacheManager = {
+    // 獲取緩存統計
+    getStats: function() {
+        const stats = cache.getStats();
+        console.log('緩存統計:', stats);
+        return stats;
+    },
+    
+    // 清除所有緩存
+    clearAll: function() {
+        cache.clear('all');
+        console.log('所有緩存已清除');
+    },
+    
+    // 清除文章緩存
+    clearArticles: function() {
+        cache.clear('articles');
+        console.log('文章緩存已清除');
+    },
+    
+    // 清除 Markdown 緩存
+    clearMarkdown: function() {
+        cache.clear('markdown');
+        console.log('Markdown 緩存已清除');
+    },
+    
+    // 清除分類索引緩存
+    clearCategoryIndex: function() {
+        cache.clear('categoryIndex');
+        categoryIndex = null;
+        console.log('分類索引緩存已清除');
+    },
+    
+    // 預熱緩存（預載入常用文章）
+    preloadArticles: async function(articleIds, language = 'tw') {
+        console.log('開始預熱緩存...');
+        const promises = articleIds.map(id => loadArticleFromMarkdown(id, language));
+        await Promise.all(promises);
+        console.log('緩存預熱完成');
+    }
+};
+
+/**
+ * 更新 SEO meta 標籤
+ * @param {Object} article - 文章對象
+ * @param {Object} currentLangContent - 當前語言的內容
+ */
+function updateSEOMetaTags(article, currentLangContent) {
+    try {
+        const title = currentLangContent.title || article.title || 'Jason Blog';
+        const description = currentLangContent.description || article.description || 
+                          currentLangContent.excerpt || article.excerpt || 
+                          '專業的財經投資分析、AI 技術洞察和科技股投資策略';
+        const keywords = (currentLangContent.tags || article.tags || []).join(',') || 
+                        '投資分析,財經新聞,AI技術,科技股,投資策略';
+        const category = article.categories ? article.categories[0] : article.category;
+        const currentUrl = window.location.href;
+        const baseUrl = window.location.origin;
+        
+        // 更新基本 meta 標籤
+        updateMetaTag('pageTitle', `${title} - Jason Blog`);
+        updateMetaTag('pageDescription', description);
+        updateMetaTag('pageKeywords', keywords);
+        
+        // 更新 Open Graph 標籤
+        updateMetaTag('ogTitle', `${title} - Jason Blog`);
+        updateMetaTag('ogDescription', description);
+        updateMetaTag('ogUrl', currentUrl);
+        updateMetaTag('articleSection', getCategoryName(category));
+        updateMetaTag('articlePublished', article.date);
+        updateMetaTag('articleModified', article.lastModified || article.date);
+        updateMetaTag('articleTags', keywords);
+        
+        // 更新 Twitter Card 標籤
+        updateMetaTag('twitterTitle', `${title} - Jason Blog`);
+        updateMetaTag('twitterDescription', description);
+        
+        // 更新 canonical URL
+        const canonicalElement = document.getElementById('canonicalUrl');
+        if (canonicalElement) {
+            canonicalElement.href = currentUrl;
+        }
+        
+        // 更新多語言連結
+        const articleId = article.id;
+        const slug = article.slug || generateUrlSlug(title);
+        updateAlternateLanguageLinks(articleId, slug, category);
+        
+        // 更新結構化數據
+        updateStructuredData(article, currentLangContent, currentUrl);
+        
+        console.log('SEO meta 標籤已更新');
+    } catch (error) {
+        console.error('更新 SEO meta 標籤時發生錯誤:', error);
+    }
+}
+
+/**
+ * 更新 meta 標籤內容
+ * @param {string} id - 元素 ID
+ * @param {string} content - 內容
+ */
+function updateMetaTag(id, content) {
+    const element = document.getElementById(id);
+    if (element) {
+        if (element.tagName === 'TITLE') {
+            element.textContent = content;
+        } else if (element.hasAttribute('content')) {
+            element.setAttribute('content', content);
+        } else if (element.hasAttribute('href')) {
+            element.setAttribute('href', content);
+        }
+    }
+}
+
+/**
+ * 更新多語言連結
+ * @param {string} articleId - 文章 ID
+ * @param {string} slug - URL slug
+ * @param {string} category - 分類
+ */
+function updateAlternateLanguageLinks(articleId, slug, category) {
+    const baseUrl = window.location.origin;
+    const languages = ['tw', 'en', 'cn', 'jp'];
+    
+    languages.forEach(lang => {
+        const element = document.getElementById(`alt${lang.toUpperCase()}`);
+        if (element) {
+            const url = `${baseUrl}/articles/${lang}/${category}/${slug}/${articleId}`;
+            element.href = url;
+        }
+    });
+}
+
+/**
+ * 更新結構化數據
+ * @param {Object} article - 文章對象
+ * @param {Object} currentLangContent - 當前語言的內容
+ * @param {string} currentUrl - 當前 URL
+ */
+function updateStructuredData(article, currentLangContent, currentUrl) {
+    const structuredDataElement = document.getElementById('structuredData');
+    if (!structuredDataElement) return;
+    
+    const title = currentLangContent.title || article.title || 'Jason Blog';
+    const description = currentLangContent.description || article.description || 
+                      currentLangContent.excerpt || article.excerpt || 
+                      '專業的財經投資分析、AI 技術洞察和科技股投資策略';
+    const keywords = (currentLangContent.tags || article.tags || []).join(',');
+    const category = article.categories ? article.categories[0] : article.category;
+    
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": title,
+        "description": description,
+        "author": {
+            "@type": "Person",
+            "name": article.author || "Jason"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Jason Blog",
+            "logo": {
+                "@type": "ImageObject",
+                "url": `${window.location.origin}/images/logo.png`
+            }
+        },
+        "datePublished": article.date,
+        "dateModified": article.lastModified || article.date,
+        "image": `${window.location.origin}/images/og-article.jpg`,
+        "url": currentUrl,
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": currentUrl
+        },
+        "articleSection": getCategoryName(category),
+        "keywords": keywords
+    };
+    
+    structuredDataElement.textContent = JSON.stringify(structuredData, null, 2);
+}
+
+// 在開發環境中顯示緩存統計
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // 每30秒顯示一次緩存統計
+    setInterval(() => {
+        const stats = cache.getStats();
+        if (stats.articlesCount > 0 || stats.markdownCount > 0) {
+            console.log('📊 緩存統計:', stats);
+        }
+    }, 30000);
 }

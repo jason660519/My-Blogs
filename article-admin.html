@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章管理系統 - Jason Blog</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .articles-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .articles-table th,
+        .articles-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .articles-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+        }
+        
+        .article-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .article-form {
+            display: none;
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin-top: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-published {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-draft {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">Jason Blog</a>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html">首頁</a>
+                <a href="article-admin.html" class="active">文章管理</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="admin-container">
+        <div class="admin-header">
+            <h1>文章管理系統</h1>
+            <div class="admin-stats">
+                <span id="articleCount">載入中...</span>
+            </div>
+        </div>
+
+        <div class="admin-actions">
+            <button class="btn btn-primary" onclick="showAddForm()">新增文章</button>
+            <button class="btn btn-secondary" onclick="refreshArticles()">重新整理</button>
+            <button class="btn btn-secondary" onclick="exportArticles()">匯出資料</button>
+            <button class="btn btn-secondary" onclick="importArticles()">匯入資料</button>
+        </div>
+
+        <div id="articlesContainer">
+            <div class="loading">正在載入文章資料...</div>
+        </div>
+
+        <div id="articleForm" class="article-form">
+            <h3 id="formTitle">新增文章</h3>
+            <form id="articleEditForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="articleId">文章 ID</label>
+                        <input type="text" id="articleId" name="id" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="articleCategory">分類</label>
+                        <select id="articleCategory" name="category" required>
+                            <option value="investment">投資分析</option>
+                            <option value="technology">科技</option>
+                            <option value="lifestyle">生活</option>
+                            <option value="tutorial">教學</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="articleDate">發布日期</label>
+                        <input type="date" id="articleDate" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="articleAuthor">作者</label>
+                        <input type="text" id="articleAuthor" name="author" value="Jason">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="articleTitleTw">標題 (繁體中文)</label>
+                    <input type="text" id="articleTitleTw" name="title_tw" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="articleExcerptTw">摘要 (繁體中文)</label>
+                    <textarea id="articleExcerptTw" name="excerpt_tw" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="articleTags">標籤 (用逗號分隔)</label>
+                    <input type="text" id="articleTags" name="tags" placeholder="例如: AI, 投資, 科技">
+                </div>
+
+                <div class="form-group">
+                    <label for="articleMarkdownPath">Markdown 檔案路徑</label>
+                    <input type="text" id="articleMarkdownPath" name="markdownPath" placeholder="例如: articles/investment/example-tw.md">
+                </div>
+
+                <div class="admin-actions">
+                    <button type="submit" class="btn btn-primary">儲存文章</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">取消</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="article-manager.js"></script>
+    <script>
+        let articleManager = null;
+        let currentEditingId = null;
+
+        // 初始化管理介面
+        async function initAdmin() {
+            try {
+                articleManager = new ArticleManager();
+                await articleManager.init();
+                await loadArticlesList();
+                updateStats();
+            } catch (error) {
+                console.error('初始化失敗:', error);
+                document.getElementById('articlesContainer').innerHTML = 
+                    '<div class="loading">載入失敗，請檢查文章管理系統</div>';
+            }
+        }
+
+        // 載入文章列表
+        async function loadArticlesList() {
+            try {
+                const articles = await articleManager.getArticles('tw');
+                renderArticlesTable(articles);
+            } catch (error) {
+                console.error('載入文章失敗:', error);
+                document.getElementById('articlesContainer').innerHTML = 
+                    '<div class="loading">載入文章失敗</div>';
+            }
+        }
+
+        // 渲染文章表格
+        function renderArticlesTable(articles) {
+            const container = document.getElementById('articlesContainer');
+            
+            if (articles.length === 0) {
+                container.innerHTML = '<div class="loading">目前沒有文章</div>';
+                return;
+            }
+
+            const table = `
+                <table class="articles-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>標題</th>
+                            <th>分類</th>
+                            <th>日期</th>
+                            <th>狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${articles.map(article => `
+                            <tr>
+                                <td>${article.id}</td>
+                                <td>${article.multilingual?.tw?.title || article.title || '無標題'}</td>
+                                <td>${getCategoryName(article.category)}</td>
+                                <td>${article.date}</td>
+                                <td><span class="status-badge status-published">已發布</span></td>
+                                <td class="article-actions">
+                                    <button class="btn btn-secondary" onclick="editArticle('${article.id}')">編輯</button>
+                                    <button class="btn btn-danger" onclick="deleteArticle('${article.id}')">刪除</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = table;
+        }
+
+        // 更新統計資訊
+        async function updateStats() {
+            try {
+                const articles = await articleManager.getArticles('tw');
+                document.getElementById('articleCount').textContent = `總共 ${articles.length} 篇文章`;
+            } catch (error) {
+                document.getElementById('articleCount').textContent = '統計載入失敗';
+            }
+        }
+
+        // 顯示新增表單
+        function showAddForm() {
+            currentEditingId = null;
+            document.getElementById('formTitle').textContent = '新增文章';
+            document.getElementById('articleEditForm').reset();
+            document.getElementById('articleId').value = generateNewId();
+            document.getElementById('articleDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('articleForm').style.display = 'block';
+        }
+
+        // 編輯文章
+        async function editArticle(id) {
+            try {
+                const article = await articleManager.getArticle(id, 'tw');
+                if (!article) {
+                    alert('找不到該文章');
+                    return;
+                }
+
+                currentEditingId = id;
+                document.getElementById('formTitle').textContent = '編輯文章';
+                
+                // 填入表單資料
+                document.getElementById('articleId').value = article.id;
+                document.getElementById('articleCategory').value = article.category;
+                document.getElementById('articleDate').value = article.date;
+                document.getElementById('articleAuthor').value = article.author || 'Jason';
+                document.getElementById('articleTitleTw').value = article.multilingual?.tw?.title || '';
+                document.getElementById('articleExcerptTw').value = article.multilingual?.tw?.excerpt || '';
+                document.getElementById('articleTags').value = article.tags?.join(', ') || '';
+                document.getElementById('articleMarkdownPath').value = article.markdownPath || '';
+                
+                document.getElementById('articleForm').style.display = 'block';
+            } catch (error) {
+                console.error('載入文章失敗:', error);
+                alert('載入文章失敗');
+            }
+        }
+
+        // 刪除文章
+        async function deleteArticle(id) {
+            if (!confirm('確定要刪除這篇文章嗎？')) {
+                return;
+            }
+
+            try {
+                // 這裡需要實作刪除功能
+                alert('刪除功能尚未實作');
+            } catch (error) {
+                console.error('刪除失敗:', error);
+                alert('刪除失敗');
+            }
+        }
+
+        // 隱藏表單
+        function hideForm() {
+            document.getElementById('articleForm').style.display = 'none';
+            currentEditingId = null;
+        }
+
+        // 重新整理文章
+        async function refreshArticles() {
+            await loadArticlesList();
+            await updateStats();
+        }
+
+        // 匯出文章
+        function exportArticles() {
+            alert('匯出功能尚未實作');
+        }
+
+        // 匯入文章
+        function importArticles() {
+            alert('匯入功能尚未實作');
+        }
+
+        // 生成新 ID
+        function generateNewId() {
+            return Date.now().toString();
+        }
+
+        // 取得分類名稱
+        function getCategoryName(category) {
+            const categoryNames = {
+                'investment': '投資分析',
+                'technology': '科技',
+                'lifestyle': '生活',
+                'tutorial': '教學'
+            };
+            return categoryNames[category] || category;
+        }
+
+        // 表單提交處理
+        document.getElementById('articleEditForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const articleData = {
+                id: formData.get('id'),
+                category: formData.get('category'),
+                date: formData.get('date'),
+                author: formData.get('author'),
+                multilingual: {
+                    tw: {
+                        title: formData.get('title_tw'),
+                        excerpt: formData.get('excerpt_tw')
+                    }
+                },
+                tags: formData.get('tags').split(',').map(tag => tag.trim()).filter(tag => tag),
+                markdownPath: formData.get('markdownPath')
+            };
+
+            try {
+                // 這裡需要實作儲存功能
+                alert('儲存功能尚未實作');
+                hideForm();
+                await refreshArticles();
+            } catch (error) {
+                console.error('儲存失敗:', error);
+                alert('儲存失敗');
+            }
+        });
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', initAdmin);
+    </script>
+</body>
+</html>

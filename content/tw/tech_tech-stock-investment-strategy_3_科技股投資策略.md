@@ -1,3 +1,27 @@
+---
+title: "科技股投資策略"
+slug: "tech-stock-investment-strategy"
+id: 3
+date: "2024-01-25"
+author: "Jason"
+categories: 
+  - tech
+  - investment
+tags:
+  - "科技股"
+  - "投資策略"
+  - "選股原則"
+  - "市場分析"
+  - "風險管理"
+description: "系統性分析科技股投資策略，包含選股原則、時機把握和風險控制方法"
+featured: false
+language: "tw"
+translations:
+  en: "tech-stock-investment-strategy"
+  cn: "科技股投资策略"
+  jp: "テクノロジー株投資戦略"
+---
+
 # 科技股投資策略
 
 科技股一直是投資者關注的焦點，但如何在波動的市場中找到機會，需要系統性的方法和深入的分析。

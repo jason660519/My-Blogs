@@ -47,6 +47,46 @@ const adminTranslations = {
         delete: 'Delete',
         save: 'Save',
         cancel: 'Cancel'
+    },
+    cn: {
+        articleManagement: '文章管理',
+        addNewArticle: '新增文章',
+        websiteSettings: '网站设定',
+        chineseVersion: '中文版本',
+        englishVersion: 'English Version',
+        sharedSettings: '共用设定',
+        articleTitle: '文章标题',
+        articleExcerpt: '文章摘要',
+        articleContent: '文章内容',
+        category: '分类',
+        tags: '标签',
+        preview: '预览',
+        clear: '清空',
+        publish: '发布',
+        edit: '编辑',
+        delete: '删除',
+        save: '保存',
+        cancel: '取消'
+    },
+    jp: {
+        articleManagement: '記事管理',
+        addNewArticle: '記事を追加',
+        websiteSettings: 'ウェブサイト設定',
+        chineseVersion: '中国語版',
+        englishVersion: 'English Version',
+        sharedSettings: '共有設定',
+        articleTitle: '記事タイトル',
+        articleExcerpt: '記事の抜粋',
+        articleContent: '記事内容',
+        category: 'カテゴリー',
+        tags: 'タグ',
+        preview: 'プレビュー',
+        clear: 'クリア',
+        publish: '公開',
+        edit: '編集',
+        delete: '削除',
+        save: '保存',
+        cancel: 'キャンセル'
     }
 };
 
@@ -597,10 +637,32 @@ function updateAdminLanguageButtons() {
  * 更新管理後台語言
  */
 function updateAdminLanguage() {
-    // 更新具有 data-zh 和 data-en 屬性的元素
-    const elementsWithLangData = document.querySelectorAll('[data-zh][data-en]');
+    // 更新具有語言屬性的元素
+    const elementsWithLangData = document.querySelectorAll('[data-zh], [data-en], [data-cn], [data-jp]');
     elementsWithLangData.forEach(element => {
-        const text = currentAdminLanguage === 'tw' ? element.getAttribute('data-zh') : element.getAttribute('data-en');
+        let text = '';
+        
+        // 根據當前語言選擇對應的屬性
+        switch (currentAdminLanguage) {
+            case 'tw':
+                text = element.getAttribute('data-zh');
+                break;
+            case 'en':
+                text = element.getAttribute('data-en');
+                break;
+            case 'cn':
+                text = element.getAttribute('data-cn');
+                break;
+            case 'jp':
+                text = element.getAttribute('data-jp');
+                break;
+        }
+        
+        // 如果找不到對應語言的文字，使用繁體中文作為備用
+        if (!text) {
+            text = element.getAttribute('data-zh');
+        }
+        
         if (text) {
             element.textContent = text;
         }

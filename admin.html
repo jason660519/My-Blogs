@@ -298,8 +298,10 @@
             
             <!-- 語言切換器 -->
             <div class="admin-lang-switcher">
-                <button class="admin-lang-btn active" data-lang="tw" data-zh="中文" data-en="Chinese">中文</button>
-                <button class="admin-lang-btn" data-lang="en" data-zh="English" data-en="English">English</button>
+                <button class="admin-lang-btn active" data-lang="tw" data-zh="中文" data-en="Chinese" data-cn="中文" data-jp="中国語">中文</button>
+                <button class="admin-lang-btn" data-lang="en" data-zh="English" data-en="English" data-cn="English" data-jp="English">English</button>
+                <button class="admin-lang-btn" data-lang="cn" data-zh="簡體中文" data-en="Simplified Chinese" data-cn="简体中文" data-jp="簡体字中国語">簡體中文</button>
+                <button class="admin-lang-btn" data-lang="jp" data-zh="日本語" data-en="Japanese" data-cn="日语" data-jp="日本語">日本語</button>
             </div>
         </div>
 
@@ -320,7 +322,7 @@
 
         <!-- 新增文章標籤頁 -->
         <div id="new-article" class="tab-content">
-            <h2 data-zh="新增文章" data-en="Add New Article">新增文章</h2>
+            <h2 data-zh="新增文章" data-en="Add New Article" data-cn="新增文章" data-jp="記事を追加">新增文章</h2>
             <form id="articleForm">
                 <!-- 中文版本 -->
                 <div class="language-section" data-lang="tw">
@@ -364,35 +366,35 @@
 
                 <!-- 共用欄位 -->
                 <div class="shared-fields">
-                    <h3><i class="fas fa-cog"></i> <span data-zh="共用設定" data-en="Shared Settings">共用設定</span></h3>
+                    <h3><i class="fas fa-cog"></i> <span data-zh="共用設定" data-en="Shared Settings" data-cn="共用设定" data-jp="共有設定">共用設定</span></h3>
                     
                     <div class="form-group">
-                        <label for="articleCategory" data-zh="分類 *" data-en="Category *">分類 *</label>
-                        <select id="articleCategory" required>
-                            <option value="" data-zh="請選擇分類" data-en="Please select category">請選擇分類</option>
-                            <option value="investment" data-zh="投資分析" data-en="Investment Analysis">投資分析</option>
-                            <option value="tech" data-zh="科技股" data-en="Technology Stocks">科技股</option>
-                            <option value="ai" data-zh="AI產業" data-en="AI Industry">AI產業</option>
-                            <option value="news" data-zh="財經新聞" data-en="Financial News">財經新聞</option>
+                        <label for="articleCategory" data-zh="分類 *" data-en="Category *" data-cn="分类 *" data-jp="カテゴリー *">分類 *</label>
+                        <select id="articleCategory" name="category" required>
+                            <option value="" data-zh="請選擇分類" data-en="Please select category" data-cn="请选择分类" data-jp="カテゴリーを選択してください">請選擇分類</option>
+                            <option value="investment" data-zh="投資分析" data-en="Investment Analysis" data-cn="投资分析" data-jp="投資分析">投資分析</option>
+                            <option value="tech" data-zh="科技股" data-en="Technology Stocks" data-cn="科技股" data-jp="テック株">科技股</option>
+                            <option value="ai" data-zh="AI產業" data-en="AI Industry" data-cn="AI产业" data-jp="AI産業">AI產業</option>
+                            <option value="news" data-zh="財經新聞" data-en="Financial News" data-cn="财经新闻" data-jp="金融ニュース">財經新聞</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="articleTags" data-zh="標籤" data-en="Tags">標籤</label>
-                        <input type="text" id="articleTags" placeholder="請用逗號分隔標籤，例如：投資,AMD,AI">
+                        <label for="articleTags" data-zh="標籤" data-en="Tags" data-cn="标签" data-jp="タグ">標籤</label>
+                        <input type="text" id="articleTags" name="tags" placeholder="用逗號分隔多個標籤">
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="previewBtn" data-zh="預覽" data-en="Preview">預覽</button>
-                    <button type="button" class="btn btn-secondary" id="clearBtn" data-zh="清空" data-en="Clear">清空</button>
-                    <button type="submit" class="btn btn-primary" id="publishBtn" data-zh="發布文章" data-en="Publish Article">發布文章</button>
+                    <button type="button" class="btn btn-secondary" id="previewBtn" data-zh="預覽" data-en="Preview" data-cn="预览" data-jp="プレビュー">預覽</button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn" data-zh="清空" data-en="Clear" data-cn="清空" data-jp="クリア">清空</button>
+                    <button type="submit" class="btn btn-primary" id="publishBtn" data-zh="發布文章" data-en="Publish Article" data-cn="发布文章" data-jp="記事を公開">發布文章</button>
                 </div>
             </form>
 
             <!-- 預覽區域 -->
             <div id="previewSection" class="preview-section" style="display: none;">
-                <h3 data-zh="文章預覽" data-en="Article Preview">文章預覽</h3>
+                <h3 data-zh="文章預覽" data-en="Article Preview" data-cn="文章预览" data-jp="記事プレビュー">文章預覽</h3>
                 <div id="previewContent"></div>
             </div>
         </div>

@@ -24,6 +24,10 @@
 }
 
 /* 基本樣式 */
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
@@ -301,6 +305,39 @@ body {
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
+}
+
+/* 多分類容器 */
+.article-categories-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.article-category-item {
+    background: var(--secondary-color);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+/* 不同分類的顏色 */
+.article-category-item.investment {
+    background: #2563eb;
+}
+
+.article-category-item.tech {
+    background: #059669;
+}
+
+.article-category-item.ai {
+    background: #7c3aed;
+}
+
+.article-category-item.news {
+    background: #dc2626;
 }
 
 .article-title {

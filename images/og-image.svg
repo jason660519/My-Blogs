@@ -1,0 +1,73 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景漸層 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- 裝飾性圖形 -->
+  <circle cx="100" cy="100" r="50" fill="#ffffff" opacity="0.1"/>
+  <circle cx="1100" cy="530" r="80" fill="#ffffff" opacity="0.1"/>
+  <rect x="950" y="50" width="200" height="4" fill="#fbbf24" opacity="0.6"/>
+  <rect x="950" y="70" width="150" height="4" fill="#f59e0b" opacity="0.6"/>
+  
+  <!-- 投資圖表圖示 -->
+  <g transform="translate(50, 400)">
+    <!-- 圖表背景 -->
+    <rect x="0" y="0" width="200" height="120" fill="#ffffff" opacity="0.1" rx="8"/>
+    <!-- 上升趨勢線 -->
+    <polyline points="20,100 60,80 100,60 140,40 180,20" 
+              fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+    <!-- 數據點 -->
+    <circle cx="20" cy="100" r="4" fill="#10b981"/>
+    <circle cx="60" cy="80" r="4" fill="#10b981"/>
+    <circle cx="100" cy="60" r="4" fill="#10b981"/>
+    <circle cx="140" cy="40" r="4" fill="#10b981"/>
+    <circle cx="180" cy="20" r="4" fill="#10b981"/>
+  </g>
+  
+  <!-- AI 圖示 -->
+  <g transform="translate(1000, 400)">
+    <!-- AI 晶片 -->
+    <rect x="0" y="0" width="80" height="80" fill="#ffffff" opacity="0.2" rx="8"/>
+    <rect x="10" y="10" width="60" height="60" fill="#6366f1" opacity="0.8" rx="4"/>
+    <!-- 電路線 -->
+    <line x1="20" y1="30" x2="60" y2="30" stroke="#ffffff" stroke-width="2"/>
+    <line x1="20" y1="40" x2="60" y2="40" stroke="#ffffff" stroke-width="2"/>
+    <line x1="20" y1="50" x2="60" y2="50" stroke="#ffffff" stroke-width="2"/>
+    <!-- 中央處理器 -->
+    <rect x="30" y="25" width="20" height="30" fill="#fbbf24" rx="2"/>
+  </g>
+  
+  <!-- 主標題 -->
+  <text x="600" y="250" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="72" font-weight="bold" fill="url(#textGradient)">
+    Jason Blog
+  </text>
+  
+  <!-- 副標題 -->
+  <text x="600" y="320" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="36" fill="#ffffff" opacity="0.9">
+    財經投資分析 · AI 技術洞察
+  </text>
+  
+  <!-- 描述文字 -->
+  <text x="600" y="380" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="24" fill="#ffffff" opacity="0.8">
+    專業的科技股投資策略與市場趨勢分析
+  </text>
+  
+  <!-- 底部裝飾線 -->
+  <rect x="400" y="450" width="400" height="3" fill="#fbbf24" opacity="0.8"/>
+  <rect x="450" y="470" width="300" height="2" fill="#f59e0b" opacity="0.6"/>
+</svg>

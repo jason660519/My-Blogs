@@ -6,6 +6,19 @@
 // 全域變數
 let currentLanguage = 'tw';
 let articleManager = null;
+let hamburger = null;
+let navMenu = null;
+let navLinks = null;
+let searchInput = null;
+let searchBtn = null;
+let articlesGrid = null;
+let filterBtns = null;
+let modal = null;
+let closeModal = null;
+let articleContent = null;
+let commentText = null;
+let submitComment = null;
+let commentsList = null;
 
 
 
@@ -517,8 +530,7 @@ let commentsData = {
     ]
 };
 
-// DOM 元素變數宣告
-let hamburger, navMenu, navLinks, searchInput, searchBtn, articlesGrid, filterBtns, modal, closeModal, articleContent, commentText, submitComment, commentsList;
+// DOM 元素變數宣告（已移至檔案開頭）
 
 // 當前狀態
 let currentFilter = 'all';
@@ -677,6 +689,8 @@ async function initApp() {
     submitComment = document.getElementById('submitComment');
     commentsList = document.getElementById('commentsList');
     
+
+    
     // 初始化文章管理器
     if (typeof ArticleManager !== 'undefined' && window.articleManager) {
         // 使用已存在的全域實例
@@ -746,7 +760,9 @@ function setupEventListeners() {
     }
     
     // 導航連結
-    navLinks.forEach(link => {
+    console.log('setupEventListeners - navLinks 數量:', navLinks.length);
+    navLinks.forEach((link, index) => {
+        console.log(`setupEventListeners - 綁定事件到連結 ${index}:`, link.href, link.textContent);
         link.addEventListener('click', handleNavClick);
     });
     
@@ -789,6 +805,15 @@ function toggleMobileMenu() {
  * 處理導航連結點擊
  */
 function handleNavClick(e) {
+    const href = e.target.getAttribute('href');
+    
+    // 如果是外部連結（如 admin.html），允許默認行為
+    if (href && !href.startsWith('#')) {
+        // 不阻止默認行為，讓瀏覽器正常處理外部連結
+        return;
+    }
+    
+    // 只對錨點連結阻止默認行為
     e.preventDefault();
     
     // 移除所有active類別
@@ -798,17 +823,25 @@ function handleNavClick(e) {
     e.target.classList.add('active');
     
     // 關閉手機版選單
-    hamburger.classList.remove('active');
-    navMenu.classList.remove('active');
+    if (hamburger) {
+        hamburger.classList.remove('active');
+    }
+    if (navMenu) {
+        navMenu.classList.remove('active');
+    }
     
     // 滾動到對應區塊
-    const targetId = e.target.getAttribute('href').substring(1);
+    const targetId = href.substring(1);
     const targetElement = document.getElementById(targetId);
     
     if (targetElement) {
-        targetElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
+        // 計算導覽列高度以進行偏移
+        const navHeight = document.querySelector('nav').offsetHeight || 80;
+        const elementPosition = targetElement.offsetTop - navHeight;
+        
+        window.scrollTo({
+            top: elementPosition,
+            behavior: 'smooth'
         });
     }
 }
@@ -1185,6 +1218,8 @@ function createArticleCard(article) {
     
     // 使用新格式URL，如果失敗則回退到舊格式
     const articleUrl = generateArticleUrl(article, currentLanguage);
+    // 修復導航問題：使用絕對路徑避免 /home/ 前綴問題
+    const articlePageUrl = `/article.html?url=${encodeURIComponent(articleUrl)}`;
     
     // 獲取翻譯文字
     const readMoreText = translations[currentLanguage]['Read More'] || '閱讀更多';
@@ -1208,14 +1243,14 @@ function createArticleCard(article) {
             <time class="article-date">${formatDate(article.date)}</time>
         </div>
         <h2 class="article-title">
-            <a href="${articleUrl}" class="article-link">${title}</a>
+            <a href="${articlePageUrl}" class="article-link">${title}</a>
         </h2>
         <p class="article-excerpt">${excerpt}</p>
         <div class="article-tags">
             ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
         </div>
         <div class="article-actions">
-            <a href="${articleUrl}" class="read-more-btn">
+            <a href="${articlePageUrl}" class="read-more-btn">
                 ${readMoreText}
             </a>
             <button class="share-btn" onclick="shareArticle(${article.id})">
@@ -1262,8 +1297,8 @@ function openArticle(articleId) {
     
     // 使用新的URL格式導航到文章頁面
     const newUrl = generateArticleUrl(article, currentLanguage);
-    // 修正：使用查詢參數格式，而非直接拼接URL
-    window.location.href = `article.html?url=${encodeURIComponent(newUrl)}`;
+    // 修正：使用絕對路徑和查詢參數格式
+    window.location.href = `/article.html?url=${encodeURIComponent(newUrl)}`;
 }
 
 /**
@@ -1483,17 +1518,28 @@ function initializeLanguagePreference() {
  */
 function updateLanguage() {
     // 更新HTML lang屬性
-    document.documentElement.lang = currentLanguage === 'tw' ? 'zh-TW' : 'en';
+    const langMap = {
+        'tw': 'zh-TW',
+        'en': 'en',
+        'cn': 'zh-CN',
+        'jp': 'ja'
+    };
+    document.documentElement.lang = langMap[currentLanguage] || 'zh-TW';
     
-    // 更新所有帶有data-zh和data-en屬性的元素
-    document.querySelectorAll('[data-zh][data-en]').forEach(element => {
-        const zhText = element.getAttribute('data-zh');
-        const enText = element.getAttribute('data-en');
+    // 更新所有帶有多語言屬性的元素
+    const elements = document.querySelectorAll('[data-zh], [data-en], [data-cn], [data-jp]');
+    elements.forEach(element => {
+        const langAttribute = `data-${currentLanguage}`;
+        const text = element.getAttribute(langAttribute);
         
-        if (currentLanguage === 'tw') {
-            element.textContent = zhText;
+        if (text) {
+            element.textContent = text;
         } else {
-            element.textContent = enText;
+            // 如果當前語言沒有對應文字，回退到繁體中文
+            const fallbackText = element.getAttribute('data-zh');
+            if (fallbackText) {
+                element.textContent = fallbackText;
+            }
         }
     });
     
